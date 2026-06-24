@@ -14,7 +14,7 @@
 </head>
 <body class="min-h-screen flex items-center justify-center" style="background-color: #111111;">
 
-    <div class="w-full max-w-md px-4 py-8">
+    <div class="w-full px-4 py-8" style="max-width: @yield('container-max-width', '448px'); margin: 0 auto;">
 
         {{-- Logo --}}
         <div class="flex justify-center mb-8">
@@ -35,9 +35,13 @@
         @endif
 
         {{-- Card --}}
-        <div class="rounded-xl p-8" style="background-color: #1a1a1a; border: 1px solid #2d2d2d;">
+        @hasSection('auth-card-override')
             @yield('content')
-        </div>
+        @else
+            <div class="rounded-xl p-8" style="background-color: #1a1a1a; border: 1px solid #2d2d2d;">
+                @yield('content')
+            </div>
+        @endif
 
         {{-- Footer --}}
         <p class="mt-6 text-center text-xs" style="color: #4b5563;">
