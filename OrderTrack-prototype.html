@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0d0d0d" />
+<title>Order Track — Dimitri's Coffee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0d0d; --fg:#fafafa; --card:#121212; --border:#262626; --border2:#1f1f1f;
+    --muted:#1f1f1f; --muted-fg:#a6a6a6;
+    --primary:#f59e0b; --primary-fg:#2a1d05;
+    --accent-bg:#3a2f17; --accent-fg:#f5b942; --accent-border:#4a3c1e;
+    --red:#ef4444; --radius:6px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--fg);font-size:14px;overflow:hidden;-webkit-font-smoothing:antialiased}
+  #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  svg.ic{width:1em;height:1em;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-0.125em}
+  button{cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--fg);border-radius:var(--radius);padding:7px 12px;font-weight:500;font-size:13px;transition:.12s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+  button:hover{background:rgba(255,255,255,.05)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .btn-primary{background:var(--primary);color:var(--primary-fg);border-color:var(--primary);font-weight:600}
+  .btn-primary:hover{background:#f7ad2e}
+  .btn-secondary{background:var(--muted);border-color:var(--border)}
+  .btn-ghost{border-color:transparent;background:transparent;color:var(--muted-fg)}
+  .btn-ghost:hover{color:var(--fg);background:rgba(255,255,255,.05)}
+  .btn-danger{background:var(--red);border-color:var(--red);color:#fff}
+  .btn-danger:hover{background:#dc2626}
+  .btn-outline-danger{border-color:rgba(239,68,68,.4);color:#f87171;background:transparent}
+  .btn-outline-danger:hover{background:rgba(239,68,68,.12)}
+  .btn-sm{padding:5px 9px;font-size:12px}
+  .btn-icon{padding:6px;width:32px;height:32px;justify-content:center}
+  input,select,textarea{background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;width:100%;font-family:inherit;font-size:13px}
+  input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+  input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.9;cursor:pointer;width:18px;height:18px;padding:2px}
+  input[type=date],input[type=time]{cursor:pointer;position:relative}
+  textarea{resize:vertical;min-height:56px}
+  label{font-size:12px;color:var(--fg);display:block;margin-bottom:5px;font-weight:500}
+  .field{margin-bottom:14px}
+  .muted{color:var(--muted-fg)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:130px}
+  .badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;border:1px solid var(--border);line-height:1.6;white-space:nowrap}
+  .badge.accent{background:var(--accent-bg);color:var(--accent-fg);border-color:transparent}
+  .badge.accent-outline{border-color:var(--accent-border);color:var(--accent-fg)}
+  .badge.outline{color:var(--muted-fg);border-color:rgba(166,166,166,.3)}
+  .badge.secondary{background:var(--muted);color:var(--fg);border-color:transparent}
+  .badge.destructive{background:rgba(239,68,68,.15);color:#f87171;border-color:rgba(239,68,68,.35);text-transform:uppercase}
+  /* Header */
+  header{background:rgba(18,18,18,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;padding-top:env(safe-area-inset-top)}
+  .hrow{display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 14px;gap:10px}
+  .hleft{display:flex;align-items:center;gap:12px;min-width:0}
+  .brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--fg);flex:none}
+  .brand .mark{height:30px;width:auto;flex:none;display:block}
+  .brand .name{font-size:13px;font-weight:700;line-height:1;letter-spacing:.02em}
+  .brand .name b{color:var(--primary);font-weight:800;display:block}
+  .divider{width:1px;height:20px;background:var(--border);flex:none}
+  nav{display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{font-size:12px;color:var(--muted-fg);border:none;padding:7px 11px;white-space:nowrap;font-weight:500}
+  nav button.active{background:var(--muted);color:var(--fg)}
+  nav button:hover{color:var(--fg)}
+  .hright{display:flex;align-items:center;gap:8px;flex:none}
+  .uname{font-size:13px;font-weight:500;color:rgba(250,250,250,.85)}
+  .main{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+  /* Summary bar */
+  .summary{border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:12px;background:rgba(18,18,18,.5);flex-wrap:wrap}
+  .searchbox{position:relative;flex:1;min-width:170px;max-width:300px}
+  .searchbox .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted-fg);pointer-events:none;font-size:14px}
+  .searchbox input{height:30px;padding-left:30px;padding-right:28px;font-size:12px}
+  .searchbox .sx{position:absolute;right:7px;top:50%;transform:translateY(-50%);color:var(--muted-fg);cursor:pointer;background:none;border:none;padding:2px}
+  .stat-txt{font-size:13px;color:var(--muted-fg);white-space:nowrap}
+  .stat-txt b{color:var(--fg);font-weight:600}
+  .live{display:flex;align-items:center;gap:6px;color:rgba(166,166,166,.55);font-size:12px;white-space:nowrap}
+  .dot{position:relative;display:inline-flex;width:8px;height:8px}
+  .dot .ping{position:absolute;inset:0;border-radius:50%;background:#22c55e;opacity:.6;animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite}
+  .dot .core{position:relative;width:8px;height:8px;border-radius:50%;background:#22c55e}
+  @keyframes ping{75%,100%{transform:scale(2.2);opacity:0}}
+  /* Board */
+  .board{flex:1;overflow-x:auto;padding:16px}
+  .cols{display:flex;gap:16px;min-width:max-content;height:100%}
+  .col{width:288px;flex:none;display:flex;flex-direction:column}
+  .col-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 2px}
+  .col-head .en{font-size:14px;font-weight:600;line-height:1.1}
+  .col-head .ar{font-size:11px;color:var(--muted-fg)}
+  .col-body{flex:1;background:rgba(255,255,255,.022);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:8px;min-height:200px;overflow-y:auto;max-height:calc(100vh - 200px)}
+  .col-empty{text-align:center;font-size:12px;color:rgba(166,166,166,.5);padding:30px 0}
+  .kcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:11px;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:8px}
+  .kcard:hover{border-color:rgba(245,158,11,.4)}
+  .kc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .kc-cust{font-weight:600;font-size:13px;line-height:1.25}
+  .kc-badges{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+  .kc-info{font-size:11px;color:var(--muted-fg);display:flex;flex-direction:column;gap:3px}
+  .kc-info .li{display:flex;align-items:center;gap:5px}
+  .kc-info .li .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kc-info a{color:var(--muted-fg);text-decoration:none}
+  .kc-info a:hover{color:var(--primary)}
+  .drvchip{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:600;border:1px solid}
+  .drvchip .dd{width:6px;height:6px;border-radius:50%;flex:none}
+  .ext{color:#fbbf24;font-weight:600}
+  .kc-time{font-size:10px;color:rgba(166,166,166,.55)}
+  /* Pages */
+  .page{padding:20px;max-width:1000px;margin:0 auto;width:100%}
+  .page h2{margin:0 0 14px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted-fg);font-size:11px;font-weight:500}
+  tr:last-child td{border-bottom:none}
+  .tablewrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;overflow-x:auto}
+  .stat-grid{display:flex;gap:12px;flex-wrap:wrap}
+  .stat-grid .b{flex:1;min-width:120px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px}
+  .stat-grid .n{font-size:28px;font-weight:800;color:var(--primary)}
+  .stat-grid .l{font-size:12px;color:var(--muted-fg);margin-top:3px}
+  .bar-row{display:flex;align-items:center;gap:12px;margin:9px 0;font-size:13px}
+  .bar-row .lbl{width:170px;flex:none}
+  .bar-track{flex:1;height:18px;background:var(--muted);border-radius:5px;overflow:hidden}
+  .bar-fill{height:100%;background:var(--primary);border-radius:5px}
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-start;justify-content:center;z-index:60;padding:16px;overflow:auto}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:560px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .modal.wide{max-width:760px}
+  .modal h3{margin:0;padding:18px 20px 0;font-size:18px;font-weight:700}
+  .modal .sub{padding:2px 20px 0;font-size:13px;color:var(--muted-fg)}
+  .modal .body{padding:16px 20px}
+  .modal .foot{padding:14px 20px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;align-items:center}
+  .modal .foot .grow{flex:1}
+  .close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted-fg);cursor:pointer;font-size:15px;padding:4px}
+  .modal-head{position:relative}
+  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 14px}
+  .kv-grid .cspan{grid-column:1/-1}
+  .kv-grid .k{font-size:11px;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px;display:flex;align-items:center;gap:5px}
+  .kv-grid .v{font-size:13px;display:flex;align-items:center;gap:5px}
+  .kv-grid .v a{color:var(--primary);text-decoration:none}
+  .notes-box{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;padding:9px 11px;font-size:13px;color:rgba(250,250,250,.8);white-space:pre-wrap}
+  .sect-label{font-size:11px;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.03em;margin:14px 0 8px;display:flex;align-items:center;gap:6px}
+  .timeline{position:relative;display:flex;flex-direction:column;gap:14px}
+  .tl-item{display:flex;align-items:flex-start;gap:12px}
+  .tl-ball{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex:none;box-shadow:0 0 0 2px var(--card);font-size:11px;z-index:1}
+  .tl-line{position:absolute;left:9px;top:20px;bottom:8px;width:1px;background:var(--border)}
+  .tl-c .a{font-size:13px;font-weight:500;line-height:1.3}
+  .tl-c .m{font-size:12px;color:var(--muted-fg);margin-top:2px}
+  .items-tbl input{font-size:13px}
+  .toggle-btns{display:flex;gap:10px}
+  .toggle-btns button{flex:1;justify-content:center}
+  .toggle-btns button.on{background:var(--primary);color:var(--primary-fg);border-color:var(--primary);font-weight:600}
+  .hint{font-size:12px;color:var(--muted-fg);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;padding:9px 11px;margin-bottom:12px}
+  .x{color:var(--muted-fg);cursor:pointer;font-weight:700;padding:0 4px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1c1c1c;border:1px solid var(--primary);color:var(--fg);padding:11px 18px;border-radius:8px;z-index:99;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center;font-size:13px}
+  .toast.show{opacity:1}.toast.err{border-color:var(--red)}
+  /* Login */
+  .login{position:fixed;inset:0;background:var(--bg);z-index:80;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
+  .login .box{background:var(--card);border:1px solid var(--border);border-radius:14px;max-width:380px;width:100%;padding:30px 26px;margin:auto}
+  .login .lwrap{display:flex;flex-direction:column;align-items:center;margin-bottom:22px}
+  .login .mark{height:84px;width:auto}
+  .login .tt{margin-top:12px;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted-fg);font-weight:600}
+  .login h2{margin:0 0 3px;font-size:20px;font-weight:700}
+  .login .err{color:var(--red);font-size:13px;min-height:18px;margin:4px 0}
+  .demo{margin-top:16px;font-size:12px;color:var(--muted-fg)}
+  .demo summary{cursor:pointer;user-select:none}
+  .demo code{color:var(--accent-fg)}
+  .demo .drow{margin-top:4px}
+  @media(max-width:600px){
+    .brand .name{display:none}
+    .kv-grid{grid-template-columns:1fr}
+    .uname{display:none}
+    .hrow{padding:0 10px}
+  }
+</style>
+</head>
+<body>
+<div id="app" style="display:none">
+  <header><div class="hrow">
+    <div class="hleft">
+      <a class="brand" href="#" id="brandLink"></a>
+      <div class="divider"></div>
+      <nav id="nav"></nav>
+    </div>
+    <div class="hright" id="hright"></div>
+  </div></header>
+  <div class="main" id="main"></div>
+</div>
+
+<div class="login" id="login"></div>
+<div class="modal-bg" id="modal"><div class="modal modal-head" id="modalInner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ===== Icons (lucide-style) ===== */
+const ICONS={
+  dashboard:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  archive:'<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+  chart:'<line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  settings:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
+  plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  truck:'<path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  chevright:'<path d="m9 18 6-6-6-6"/>',
+  pencil:'<path d="M21.17 6.83 17.17 2.83a2 2 0 0 0-2.83 0L3 14.17V21h6.83L21.17 9.66a2 2 0 0 0 0-2.83z"/>',
+  trash:'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  pkg:'<path d="M16 16h6"/><path d="M19 13v6"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  arrow:'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  rotate:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'
+};
+const ic=(n,sz)=>`<svg class="ic" viewBox="0 0 24 24"${sz?` style="width:${sz};height:${sz}"`:''}>${ICONS[n]||''}</svg>`;
+const LOGO_B64="iVBORw0KGgoAAAANSUhEUgAAAUAAAADUCAMAAADazgp5AAAABlBMVEUAAAD9/f16ZUgdAAAAAXRSTlMAQObYZgAACVZJREFUeNrtnFuS2zoMRIn9b/rWrYwtgWiA4JuS0R+JzGfjEJQlZjIpnSz6024fTxQB7fb0IJGl3ebOEnVqt//nkvtZjmPB/RbKJhwBsoXcsAV4MMfqSCtifTPDpaG9CePOnVWb7KcRPcnyozgebPBkjm5DB+yReo6zSO53sJjllol3MxoOcslEs+M9gGNtoGeQ+5qZP8NQjIdwu9lZOVc3xHPQ/U1H37+PwljVd9PjyD+b/9yuz/wSS0/7LdgOdfPxYBk6xSswdJCppP5L4blGD7OloDrQZzodIMmy3dagzYO95SW7fUmHpyLMLZ1msO7pa6ND9mm3J+jwSHo3f7fr3Y5Uj2e6C4Bj3PGrs3TyBr78pYcAPNbf52K3G+zv789zDZ4N8OMyrT0WrHB4LfKB9r4md1uwvJ0PcOFJaoO1ANhp7REAdxswrD0C4MEKgJ0KgJ0KgJ0KgJ0KgJ0KgJ0KgJ0KgJ0KgJ0KgJ0KgJ06GSD3dOi59BEAwdwCF5kKgGMAbqC6BGBhaJoEcAnJnwA4E+EKgIWxYYyDAU5NjqEA9WzaDJA8s24G2OYVdxoPkOzxDwCorvYygORppAFsjH8hwNL/CjCLCVbVASRr2taM/PQZl81GNvUABNRuP+5BWaPfAailLemdPBkIJ8DFCwES2bMUAZJ/TB9AB1rCU6gA/eFKgD52Hhhu8OqIvQBvRYXEVACWw/UCJFUNAMkafAbA/0vxVy4GaNxNWwBSQb0A9dEGAkwmwKzAilsHqD3GlPip9y3Sh3ECNG7qMwEm4rVlhJ/yRoCutFE7uFZjLcBC3BMAmg9XdQDxYvQDBMUKwEICqm40gLUpWEAh6tYARBPIotsHb7j3fkWvriF9AKlY0Q/waoEnyIu0Fxo5bE8GakYPBuheasyL55fuxgOQj1IiUsoLJdw6gIX1NoY3gIAtf3sWT6KHHyCb37kzTFDLAabCSmsA0/WcV7uF9QcD/HhcA5CtzQqAyZmB8Fv781KIG9cDTNQFkBLjMAigm58bICOYkpqvDQATPOWwAcrbswegzqkGII/eDZAnrdq4BSCsLAAsJqMrSRwAc5op23w2QOv0oxZg5VneMQCzp4aaE8ocfgHhUoCECCpMegGSZb3Ar4bgWIClrwNAUOvWB9A5gnbGZx5zjAPovAniXCvF2g/QeIQoAvQTXAxQWdsagP7EagZYQ/CvVm9ljdGSgfD+MgdgxflgO8EegGD4IkDlbOM0gOJtVU/W6QCzosIrzBCApbYOgNmDkN72U9UHsKaIfP2WAEyW1MPEOoCVTwONbE4EqB86DQIIh3YEAU9f5gAsnW6kgvD9ZhBAcpoDJcnodxRAB8GXA6x8zf74UwgOBaiMawAUruzgVdfFik6AakSNAAseWgAmcLwm8lupMH6DxxiA+ggDAXJ+zi3MIOgJXYpSr6h2b7WvAkg1ACmT1tq0SyJgctzSbSmW6gAaCzkAIFQq+72gsWadwLxU9YBKsTr4eQDaBOXNy7kVFwkAcAO099oYgAlt4X8XecEpgjvCFavaITUDhN+RWzPORVBFQqki1n6AaBXPZseNotJUx68LYHoGqTqREm/q2MLKiK/khw4CzWRpBDjiue1UkURoJEs9wE/B7jgnitgjYDL3WhXA63p3iLN1D9KO1wUw3dm9Hh5DUwzYl4G/kngNcm/h3UZPlW8Lh1QFwE7dHusCYIsiAzsVADsVADsVAHu1DKD+KK7UyAMMVGyWOn9E7QEA9SjUGnQEpJUmXKq1Hh7ZbIB6FEZ8AbCAohRgAFRBaDcu7iEAFikR6XWTAE4Kb+ZpFYpfRgf+/RuHrIBQ/M8LaxlAlFhZldLUIvWDAD01AVAevRr3HlCzFuC4iHsBijt8MV6tRn4vTAMo7sz7AJLUJoDohgtt2aaXAfwGmvgiiggM7LAUhpiMUidAtrAcwLekGkIzwGvmlG+CPDAdoFE6E6DYJDiORQBZNt3MJGsH7wZ4UfxWzQWINgEDyFbw/AxkmZcBlK+TAwAm5OFT8eci2w5sebXxlgK8TcMWm/+wlOxe5OLbwpjgN/vuLloB3gsbACqToMnZ2l9ZiPg5qHjvgXoo6doBXg+oSgJ0ca9/DqS7WxCMF1/9l0g2RWZJfb/1AQQBTAN4VWUP/oWevQC1sbWJJUHSa9YBzBLB3W0IQDmF0RdtjLwKflx5mCD3TCWJ1jeRnE6hkUYM1na9ylUfqLpCGQ6wGrOLIO83GOD4EOcDNN7bLX4BsBhdIcAAqIbnqwqASoDeKqu1Nb4JcFJk8wH+zVVfc7xWAnylAmCnPuCCYKMCYJ+IAwyCtbqoBcAWUQ4wCNYJPHTutvQoMWTzHtZfqwxYEKyU8voeBJ1S39+DoEcYVQB0Sk21iec+r5F9OkZIuy0fIS8XMpV+DqfBor7LL6VlV/xOhO/kOCzqGoqvYDklynqKT8O4NrLXcNyaEg9PyYOc15Lci/JYi9UYl7o8zc9IjhO91NjZDQ6Yb+A5avLnchsQUntU78PWS9ETaeWgj4XXFi/Ml87ur1ELyn7671NwOwzl7ij2q5pUkDMUiTZEwS4UCoVCoVAoFAqFQqFQKBQKhUIhQ9cBOjtMz47WiTf7dr6PwvsRL8vmI+sTESnXWRveS5mC+UxgfG0CbTCAD/Tkw+STXb0NgIkk8Sx+sqcpXWedCMwAfF7L61ghOZgDoE6zGiCxVnm0xD+2ZaA6BsvRFoAgHxHAb4qzeEXU/y5YQhG/vDe/XeVVfCS6F+OskWZEDnD7fPD8Vx184+W/whKNJzqoAFPmwPJcAVDcQKyRxgBEliTAfFwFIMnZAMB8G4pY5KzyFy+YAIv8lLTXWhYAogrmGQJE3UQHjSC4+2aXjQCl4RJAZMD6kgT3rCJAeQ+Hkzl/Qwzq6QaY34AkJhUZ6qOB6gLItyLrXAAIkOsIs1EcAJnhAQAd0PJsTLIAAmTlqLFjAgdBLXAdIPFlrgQon4K0UbIB0T3wvvBgUIJDyFSE7X1fJUbgcDSxcxwAJ34Ls/zRffLxdIDSt47OB1CwagYIdim/K9jQFIAsBZVJUv4kmy8gXhAzAzUIKQ/s+nj9mRVq48D5BMESQDGTtv3NReKdGUCZIIKDARBlDp8pm4AF4AdojNsJENPQfGZzYIDim1VHKGNFNok7YZF6Euk+MvxUBAhzAqECa3L3mc+RAcyGzWP4D1eCPddtYMkLAAAAAElFTkSuQmCC";
+const COFFEE_LOGO=`<img class="mark" src="data:image/png;base64,${LOGO_B64}" alt="Dimitri's Coffee"/>`;
+
+/* ===== Config ===== */
+const STAGES=[
+  {id:"new",en:"New Order",ar:"طلب جديد"},
+  {id:"packing",en:"Preparation & Packing",ar:"التحضير والتغليف"},
+  {id:"dispatch",en:"Dispatch",ar:"الإرسال"},
+  {id:"picked_up",en:"Picked Up",ar:"تم الاستلام"},
+  {id:"delivered",en:"Delivered",ar:"تم التسليم"},
+  {id:"cancelled",en:"Cancelled",ar:"ملغى"}
+];
+const FLOW=["new","packing","dispatch","picked_up","delivered"];
+const stageIdx=id=>STAGES.findIndex(s=>s.id===id);
+const stageObj=id=>STAGES[stageIdx(id)]||{en:id,ar:id};
+function nextStageOf(o){const i=FLOW.indexOf(o.stage);if(i<0||i>=FLOW.length-1)return null;return stageObj(FLOW[i+1]);}
+// grind options are admin-managed and live in state.grinds
+const ROLES=["sales","production","fleet","driver","management","admin"];
+const ROLE_LABEL={sales:"Sales / المبيعات",production:"Production / الإنتاج",fleet:"Fleet Supervisor / مشرف الأسطول",driver:"Driver / السائق",management:"Management / الإدارة",admin:"Admin / المسؤول"};
+const ROLE_BADGE={
+  admin:{c:"#f87171",b:"rgba(239,68,68,.3)",bg:"rgba(127,29,29,.45)"},
+  fleet:{c:"#60a5fa",b:"rgba(96,165,250,.3)",bg:"rgba(30,58,138,.45)"},
+  production:{c:"#c084fc",b:"rgba(192,132,252,.3)",bg:"rgba(88,28,135,.45)"},
+  sales:{c:"#34d399",b:"rgba(52,211,153,.3)",bg:"rgba(6,78,59,.45)"},
+  driver:{c:"#fbbf24",b:"rgba(251,191,36,.3)",bg:"rgba(120,53,15,.45)"},
+  management:{c:"#a1a1aa",b:"rgba(161,161,170,.3)",bg:"rgba(39,39,42,.6)"}
+};
+const DRIVER_PAL=[
+  {t:"#67e8f9",bg:"rgba(22,78,99,.5)",b:"rgba(14,116,144,.4)",d:"#22d3ee"},
+  {t:"#f9a8d4",bg:"rgba(131,24,67,.5)",b:"rgba(190,24,93,.4)",d:"#f472b6"},
+  {t:"#bef264",bg:"rgba(54,83,20,.5)",b:"rgba(77,124,15,.4)",d:"#a3e635"},
+  {t:"#fdba74",bg:"rgba(124,45,18,.5)",b:"rgba(194,65,12,.4)",d:"#fb923c"},
+  {t:"#c4b5fd",bg:"rgba(76,29,149,.5)",b:"rgba(109,40,217,.4)",d:"#a78bfa"},
+  {t:"#5eead4",bg:"rgba(19,78,74,.5)",b:"rgba(15,118,110,.4)",d:"#2dd4bf"},
+  {t:"#fda4af",bg:"rgba(136,19,55,.5)",b:"rgba(190,18,60,.4)",d:"#fb7185"}
+];
+function driverColor(id){const list=state.users.filter(u=>u.role==="driver");const i=list.findIndex(u=>u.id===id);return DRIVER_PAL[(i<0?0:i)%DRIVER_PAL.length];}
+const PRIMARY_ADMIN="Qutibah";
+
+/* ===== Storage ===== */
+const LS="ordertrack_v2", LSU="ordertrack_v2_user";
+const nowISO=()=>new Date().toISOString();
+function cryptoId(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-3);}
+function seed(){
+  const t=nowISO(),today=t.slice(0,10);
+  const U=(username,fullName,role,password)=>({id:cryptoId(),username,fullName,role,password,enabled:true,mustChangePassword:false,createdAt:t});
+  const users=[
+    U("Qutibah","Qutibah Alhamdan","admin","Qutibah@2026"),
+    U("sarah_sales","Sarah Al-Ahmad","sales","Pass@123"),
+    U("omar_prod","Omar Khaled","production","Pass@123"),
+    U("faris_fleet","Faris Al-Najjar","fleet","Pass@123"),
+    U("ali_driver","Ali Hassan","driver","Pass@123"),
+    U("rami_driver","Rami Khalil","driver","Pass@123"),
+    U("khaled_driver","Khaled Mansour","driver","Pass@123"),
+    U("nour_mgmt","Nour Al-Khalidi","management","Pass@123")
+  ];
+  const sales=users[1].id,ali=users[4].id,rami=users[5].id;
+  const products=["Ethiopian Yirgacheffe","Colombia Huila","Espresso Blend","House Blend","Decaf Blend","Specialty Single Origin","Kenya AA","Rwanda Bourbon","Premium Roast"].map(n=>({id:cryptoId(),name:n}));
+  const fillings=["Sample","250 g","1 kg"];
+  const grinds=["حب","مطحون"];
+  const customers=[
+    {id:cryptoId(),name:"Al-Rashid Supermarket",phones:["+962799001122"],addresses:["Shmeisani, Amman"]},
+    {id:cryptoId(),name:"Blue Mountain Café",phones:["+962797334455","+962790001111"],addresses:["Rainbow Street, Amman","Sweifieh branch, Amman"]},
+    {id:cryptoId(),name:"Mecca Street Hotels Group",phones:["+962796556677"],addresses:["Mecca Street, Amman","Airport Road, Amman"]},
+    {id:cryptoId(),name:"Gardens Restaurant",phones:["+962795778899"],addresses:["Al-Gardens, Amman"]},
+    {id:cryptoId(),name:"Jabal Amman Coffee",phones:["+962798990011"],addresses:["Paris Circle, Amman"]}
+  ];
+  const cid=n=>customers.find(c=>c.name===n).id;
+  let seq=0;const oid=()=>++seq;
+  const lg=(a,by)=>({id:cryptoId(),action:a,note:null,performedByName:by,createdAt:t});
+  const base={isOutsourced:false,outsourcedDriverName:null,outsourceCost:null,dispatchWindow:null,isDelayed:false,isArchived:false,assignedDriverId:null,createdById:sales,createdByName:"Sarah Al-Ahmad",createdAt:t,stageUpdatedAt:t};
+  const orders=[
+    {id:oid(),customerId:cid("Al-Rashid Supermarket"),customerName:"Al-Rashid Supermarket",orderDate:today,contactPhone:"+962799001122",preferredDeliveryTime:"2026-06-14T13:00",deliveryLocation:"Shmeisani, Amman",stage:"new",notes:"",...base,items:[{productName:"Ethiopian Yirgacheffe",filling:"1 kg",grind:"حب",quantity:5},{productName:"Colombia Huila",filling:"250 g",grind:"مطحون",quantity:3}],activityLog:[lg("Order created","Sarah Al-Ahmad")]},
+    {id:oid(),customerId:cid("Blue Mountain Café"),customerName:"Blue Mountain Café",orderDate:today,contactPhone:"+962797334455",preferredDeliveryTime:"2026-06-14T09:30",deliveryLocation:"Rainbow Street, Amman",stage:"packing",notes:"",...base,items:[{productName:"Espresso Blend",filling:"1 kg",grind:"حب",quantity:10}],activityLog:[lg("Order created","Sarah Al-Ahmad"),lg("Stage advanced to: Preparation & Packing","Omar Khaled")]},
+    {id:oid(),customerId:cid("Mecca Street Hotels Group"),customerName:"Mecca Street Hotels Group",orderDate:today,contactPhone:"+962796556677",preferredDeliveryTime:"2026-06-14T15:00",deliveryLocation:"Mecca Street, Amman",stage:"dispatch",notes:"",...base,assignedDriverId:ali,dispatchWindow:"same_day",items:[{productName:"House Blend",filling:"1 kg",grind:"مطحون",quantity:8},{productName:"Decaf Blend",filling:"250 g",grind:"مطحون",quantity:4}],activityLog:[lg("Order created","Sarah Al-Ahmad"),lg("Stage advanced to: Preparation & Packing","Omar Khaled"),lg("Stage advanced to: Dispatch","Faris Al-Najjar")]},
+    {id:oid(),customerId:cid("Gardens Restaurant"),customerName:"Gardens Restaurant",orderDate:today,contactPhone:"+962795778899",preferredDeliveryTime:"2026-06-14T16:00",deliveryLocation:"Al-Gardens, Amman",stage:"picked_up",notes:"Urgent — customer called twice",...base,isOutsourced:true,outsourcedDriverName:"Fast Delivery Co.",outsourceCost:7.5,dispatchWindow:"next_day",items:[{productName:"Specialty Single Origin",filling:"250 g",grind:"حب",quantity:6}],activityLog:[lg("Order created","Sarah Al-Ahmad"),lg("Stage advanced to: Dispatch (Outsourced: Fast Delivery Co.)","Faris Al-Najjar"),lg("Stage advanced to: Picked Up","Faris Al-Najjar")]},
+    {id:oid(),customerId:cid("Jabal Amman Coffee"),customerName:"Jabal Amman Coffee",orderDate:today,contactPhone:"+962798990011",preferredDeliveryTime:"2026-06-14T09:00",deliveryLocation:"Paris Circle, Amman",stage:"delivered",notes:"",...base,assignedDriverId:rami,dispatchWindow:"same_day",items:[{productName:"Kenya AA",filling:"1 kg",grind:"حب",quantity:3},{productName:"Rwanda Bourbon",filling:"250 g",grind:"مطحون",quantity:2}],activityLog:[lg("Order created","Sarah Al-Ahmad"),lg("Stage advanced to: Preparation & Packing","Omar Khaled"),lg("Stage advanced to: Dispatch","Faris Al-Najjar"),lg("Stage advanced to: Picked Up","Rami Khalil"),lg("Stage advanced to: Delivered","Rami Khalil")]}
+  ];
+  return {settings:{samedayCutoffTime:"10:00",finalPickupTime:"13:00"},seq,users,products,fillings,grinds,customers,orders,notifications:[]};
+}
+function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(s&&s.orders&&s.users&&s.settings&&s.products&&s.customers&&s.fillings&&s.grinds)return s;}catch(e){}return seed();}
+let state=load();
+if(!state.notifications)state.notifications=[];
+function save(){localStorage.setItem(LS,JSON.stringify(state));}
+function notify(userId,text,orderId){state.notifications.push({id:cryptoId(),userId,text,orderId:orderId||null,read:false,createdAt:nowISO()});}
+function unreadCount(){return me?state.notifications.filter(n=>n.userId===me.id&&!n.read).length:0;}
+let me=null;(function(){try{const id=localStorage.getItem(LSU);me=state.users.find(u=>u.id===id&&u.enabled)||null;}catch(e){}})();
+function saveMe(){me?localStorage.setItem(LSU,me.id):localStorage.removeItem(LSU);}
+
+/* ===== Helpers ===== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=iso=>new Date(iso).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+function ago(iso){const s=(Date.now()-new Date(iso))/1000;if(s<60)return"just now";const m=s/60;if(m<60)return Math.floor(m)+"m ago";const h=m/60;if(h<24)return Math.floor(h)+"h ago";return Math.floor(h/24)+"d ago";}
+function fmtPref(v){if(!v)return"";if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v)){return new Date(v).toLocaleString("en-GB",{weekday:"short",day:"2-digit",month:"short",hour:"numeric",minute:"2-digit",hour12:true});}return v;}
+let toastT;function toast(msg,err){const t=$("#toast");t.textContent=msg;t.className="toast show"+(err?" err":"");clearTimeout(toastT);toastT=setTimeout(()=>t.className="toast",2500);}
+const driversList=()=>state.users.filter(u=>u.role==="driver"&&u.enabled);
+const userById=id=>state.users.find(u=>u.id===id);
+const customerById=id=>state.customers.find(c=>c.id===id);
+const grindLabel=v=>v||"";
+
+/* ===== Permissions ===== */
+const role=()=>me?me.role:null;
+const isAdmin=()=>role()==="admin";
+const canCreate=()=>role()==="sales"||isAdmin();
+const canSeeCost=()=>isAdmin()||role()==="fleet";
+function canEdit(o){if(o.stage==="cancelled")return false;if(isAdmin())return true;if(o.stage==="new"&&role()==="sales"&&o.createdById===me.id)return true;return false;}
+const canCancel=()=>isAdmin();
+const canManageCustomers=()=>isAdmin()||role()==="sales";
+// "full" = edit everything, "items" = edit products only, null = locked
+function editScope(o){if(o.isArchived||o.stage==="cancelled"||o.stage==="delivered")return null;if(isAdmin())return "full";if(role()==="sales"&&o.stage==="new"&&o.createdById===me.id)return "full";if(role()==="production"&&o.stage==="packing")return "items";return null;}
+function canAdvance(o){
+  if(o.stage==="delivered"||o.stage==="cancelled")return false;
+  if(isAdmin())return true;
+  if(o.stage==="new"&&role()==="production")return true;
+  if(o.stage==="packing"&&role()==="fleet")return true;
+  if(o.stage==="dispatch"||o.stage==="picked_up"){
+    if(o.isOutsourced)return role()==="fleet";
+    return role()==="driver"&&o.assignedDriverId===me.id;
+  }
+  return false;
+}
+/* ===== Dispatch window / archive ===== */
+const minsHHMM=h=>{const[a,b]=h.split(":").map(Number);return a*60+b;};
+function windowForNow(){const n=new Date();return (n.getHours()*60+n.getMinutes())>=minsHHMM(state.settings.samedayCutoffTime)?"next_day":"same_day";}
+function pastFinal(){const n=new Date();return (n.getHours()*60+n.getMinutes())>minsHHMM(state.settings.finalPickupTime);}
+function isLate(o){return o.stage==="dispatch"&&o.dispatchWindow==="same_day"&&pastFinal();}
+// Delivered or Cancelled orders auto-archive 3 days after they reached that state
+function autoArchive(){const cut=new Date();cut.setDate(cut.getDate()-3);let n=0;state.orders.forEach(o=>{if(!o.isArchived&&(o.stage==="delivered"||o.stage==="cancelled")&&new Date(o.stageUpdatedAt)<=cut){o.isArchived=true;n++;}});if(n)save();}
+
+/* ===== Routing ===== */
+let view="board";
+function tabs(){
+  const mgmt=isAdmin()||role()==="management";
+  const t=[["board","Kanban","dashboard"]]; // Kanban for everyone
+  if(mgmt)t.push(["archived","Archived","archive"]);
+  if(mgmt)t.push(["reports","Reports","chart"]);
+  if(mgmt)t.push(["products","Products","pkg"]);
+  if(canManageCustomers())t.push(["customers","Customers","users"]); // admin + sales
+  if(isAdmin())t.push(["users","Users","users"]);
+  if(isAdmin())t.push(["settings","Settings","settings"]);
+  return t;
+}
+
+/* ===== Render shell ===== */
+function render(){
+  if(!me){$("#app").style.display="none";$("#login").style.display="flex";renderLogin();return;}
+  $("#login").style.display="none";$("#app").style.display="flex";
+  autoArchive();
+  $("#brandLink").innerHTML=`${COFFEE_LOGO}<span class="name">Order<b>Track</b></span>`;
+  const rb=ROLE_BADGE[me.role];
+  const unread=unreadCount();
+  $("#hright").innerHTML=`
+    <button class="btn-ghost btn-icon" id="bellBtn" title="Notifications" style="position:relative">${ic('bell','16px')}${unread?`<span style="position:absolute;top:-1px;right:-1px;background:var(--red);color:#fff;border-radius:10px;font-size:9px;font-weight:700;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1">${unread}</span>`:''}</button>
+    <span class="uname">${esc(me.fullName)}</span>
+    <span class="badge" style="color:${rb.c};border-color:${rb.b};background:${rb.bg};text-transform:uppercase">${me.role}</span>
+    <span class="divider"></span>
+    <button class="btn-ghost btn-sm" id="pwBtn">Password</button>
+    <button class="btn-ghost btn-icon" id="logoutBtn" title="Sign out">${ic('logout','16px')}</button>`;
+  const tb=tabs();if(!tb.find(t=>t[0]===view))view="board";
+  $("#nav").innerHTML=tb.map(([id,lbl,icn])=>`<button class="${view===id?'active':''}" data-tab="${id}">${ic(icn,'14px')}<span class="ntext">${lbl}</span></button>`).join("");
+  const m=$("#main");
+  if(view==="board")m.innerHTML=boardHTML();
+  else if(view==="archived"){m.innerHTML=archivedHTML();renderArc();}
+  else if(view==="reports")m.innerHTML=reportsHTML();
+  else if(view==="users")m.innerHTML=usersHTML();
+  else if(view==="customers")m.innerHTML=customersHTML();
+  else if(view==="products")m.innerHTML=productsHTML();
+  else if(view==="settings")m.innerHTML=settingsHTML();
+  save();
+}
+
+/* ===== Board ===== */
+function visibleActive(){
+  let l=state.orders.filter(o=>!o.isArchived);
+  if(role()==="driver")l=l.filter(o=>o.assignedDriverId===me.id);
+  return l;
+}
+function boardHTML(){
+  const q=(window._search||"").trim().toLowerCase();
+  const match=o=>!q||o.customerName.toLowerCase().includes(q)||(o.contactPhone||"").toLowerCase().includes(q)||(o.deliveryLocation||"").toLowerCase().includes(q);
+  const vis=visibleActive();
+  const matches=q?vis.filter(match).length:null;
+  const active=vis.length, archived=state.orders.filter(o=>o.isArchived&&(role()!=="driver"||o.assignedDriverId===me.id)).length;
+  const delayed=vis.filter(isLate).length;
+  const now=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  let stats = matches!=null
+    ? `<span class="stat-txt" style="color:var(--primary);font-weight:600">${matches} match${matches!==1?'es':''}</span>`
+    : `<span class="stat-txt">Active: <b>${active}</b></span><span class="stat-txt">Archived: <b>${archived}</b></span>${delayed?`<span class="stat-txt" style="color:#f87171;font-weight:600;display:inline-flex;align-items:center;gap:4px">${ic('alert','14px')} ${delayed} delayed</span>`:''}`;
+  const summary=`<div class="summary">
+    <div class="searchbox"><span class="si">${ic('search','14px')}</span><input type="text" id="search" placeholder="Search name, phone, location…" value="${esc(window._search||'')}"/>${window._search?`<button class="sx" id="searchClear">${ic('x','14px')}</button>`:''}</div>
+    ${stats}
+    <span class="live"><span class="dot"><span class="ping"></span><span class="core"></span></span><span class="livetxt">Live · ${now}</span></span>
+    ${canCreate()?`<button class="btn-primary btn-sm" id="newOrderBtn" style="margin-left:auto">${ic('plus','14px')} New Order</button>`:''}
+  </div>`;
+  const cols=STAGES.map(s=>{
+    const list=vis.filter(o=>o.stage===s.id&&match(o));
+    return `<div class="col"><div class="col-head"><div><div class="en">${s.en}</div><div class="ar">${s.ar}</div></div><span class="badge secondary" style="margin-left:auto">${list.length}</span></div>
+      <div class="col-body">${list.map(card).join("")||'<div class="col-empty">No orders</div>'}</div></div>`;
+  }).join("");
+  return summary+`<div class="board"><div class="cols">${cols}</div></div>`;
+}
+function windowBadge(o){if(!o.dispatchWindow||["new","packing"].includes(o.stage))return"";return `<span class="badge accent">${o.dispatchWindow==="same_day"?"Same Day":"Next Day"}</span>`;}
+function card(o){
+  const late=isLate(o);
+  const items=o.items.length;
+  let driverHTML="";
+  if(o.isOutsourced)driverHTML=`<div class="li"><span>${ic('truck','13px')}</span><span class="tx ext">Outsourced: ${esc(o.outsourcedDriverName)}</span></div>`;
+  else if(o.assignedDriverId){const d=userById(o.assignedDriverId),dc=driverColor(o.assignedDriverId);if(d)driverHTML=`<div class="li"><span>${ic('truck','13px')}</span><span class="drvchip" style="color:${dc.t};background:${dc.bg};border-color:${dc.b}"><span class="dd" style="background:${dc.d}"></span>${esc(d.fullName)}</span></div>`;}
+  return `<div class="kcard" data-detail="${o.id}">
+    <div class="kc-top"><div class="kc-cust">${esc(o.customerName)}</div>${late?`<span class="badge destructive">${ic('alert','12px')}Delayed</span>`:''}</div>
+    <div class="kc-badges">
+      <span class="badge outline">${items} item${items!==1?'s':''}</span>
+      ${o.preferredDeliveryTime?`<span class="badge accent-outline">${ic('clock','12px')}${esc(fmtPref(o.preferredDeliveryTime))}</span>`:''}
+      ${windowBadge(o)}
+    </div>
+    <div class="kc-info">
+      ${o.deliveryLocation?`<div class="li"><span>${ic('pin','13px')}</span><span class="tx">${esc(o.deliveryLocation)}</span></div>`:''}
+      ${o.contactPhone?`<div class="li"><span>${ic('phone','13px')}</span><a href="tel:${esc((o.contactPhone||'').replace(/\s/g,''))}" data-stop>${esc(o.contactPhone)}</a></div>`:''}
+      ${driverHTML}
+    </div>
+    <div class="kc-time">Created ${ago(o.createdAt)} · Stage ${ago(o.stageUpdatedAt)}</div>
+  </div>`;
+}
+
+/* ===== Modal helpers ===== */
+function openModal(html,wide){$("#modalInner").className="modal modal-head"+(wide?" wide":"");$("#modalInner").innerHTML=html+`<button class="close" data-close>${ic('x','15px')}</button>`;$("#modal").classList.add("open");}
+function closeModal(){$("#modal").classList.remove("open");}
+
+/* ===== Order detail ===== */
+function classify(a){
+  if(a==="Order created")return{dot:"#22c55e",icon:ic('pkg','12px'),label:a};
+  if(a.startsWith("Stage advanced to:"))return{dot:"var(--primary)",icon:ic('arrow','12px'),label:a.replace("Stage advanced to:","→")};
+  if(a==="Order details updated")return{dot:"#60a5fa",icon:ic('edit','12px'),label:"Details updated"};
+  if(a==="Order archived")return{dot:"#a1a1aa",icon:ic('archive','12px'),label:"Archived"};
+  if(/cancel/i.test(a))return{dot:"#ef4444",icon:ic('x','12px'),label:"Order cancelled"};
+  if(/^Note/.test(a))return{dot:"#60a5fa",icon:ic('edit','12px'),label:a};
+  if(/restored/.test(a))return{dot:"#c084fc",icon:ic('rotate','12px'),label:"Restored from archive"};
+  return{dot:"var(--muted-fg)",icon:ic('activity','12px'),label:a};
+}
+function openDetail(o){
+  const st=stageObj(o.stage);
+  const badges=`${isLate(o)?`<span class="badge destructive">${ic('alert','12px')}Delayed</span>`:''}${o.dispatchWindow?`<span class="badge outline">${o.dispatchWindow==="same_day"?"Same Day":"Next Day"}</span>`:''}<span class="badge accent">${st.en} / ${st.ar}</span>`;
+  let grid=`<div class="kv-grid">
+    <div><div class="k">Contact</div><div class="v"><a href="tel:${esc((o.contactPhone||'').replace(/\s/g,''))}">${ic('phone','13px')} ${esc(o.contactPhone)}</a></div></div>
+    <div><div class="k">Order Date</div><div class="v">${esc(o.orderDate)}</div></div>
+    <div class="cspan"><div class="k">Delivery Location</div><div class="v">${ic('pin','13px')} ${esc(o.deliveryLocation)}</div></div>
+    <div><div class="k">Preferred Time</div><div class="v">${ic('clock','13px')} ${esc(fmtPref(o.preferredDeliveryTime))}</div></div>`;
+  if(o.assignedDriverId||o.isOutsourced)grid+=`<div><div class="k">Driver</div><div class="v">${ic('truck','13px')} ${o.isOutsourced?`<span style="color:#fbbf24">Outsourced: ${esc(o.outsourcedDriverName)}</span>`:esc(userById(o.assignedDriverId)?.fullName||'')}</div></div>`;
+  if(canSeeCost()&&o.isOutsourced&&o.outsourceCost!=null)grid+=`<div><div class="k">Outsource Cost</div><div class="v" style="color:var(--primary);font-weight:600">${Number(o.outsourceCost).toFixed(3)} JOD</div></div>`;
+  if(o.notes)grid+=`<div class="cspan"><div class="k">${ic('edit','12px')} Internal Notes</div><div class="notes-box">${esc(o.notes)}</div></div>`;
+  grid+=`</div>`;
+  const itemsTbl=`<div class="sect-label">Items (${o.items.length})</div><div class="tablewrap"><table><thead><tr><th>Product</th><th>Filling</th><th>Grind</th><th style="text-align:right">Qty</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${esc(i.productName)}</td><td>${esc(i.filling||'—')}</td><td>${esc(grindLabel(i.grind)||'—')}</td><td style="text-align:right;font-weight:600">${i.quantity}</td></tr>`).join("")}</tbody></table></div>`;
+  const tl=`<div class="sect-label">${ic('activity','12px')} History &amp; Notes</div><div class="timeline">${o.activityLog.length>1?'<div class="tl-line"></div>':''}${o.activityLog.map(l=>{const c=classify(l.action);return `<div class="tl-item"><div class="tl-ball" style="background:${c.dot}">${c.icon}</div><div class="tl-c"><div class="a">${esc(c.label)}</div>${l.note?`<div class="notes-box" style="margin-top:4px">${esc(l.note)}</div>`:''}<div class="m">${esc(l.performedByName)} · ${ago(l.createdAt)}</div></div></div>`;}).join("")}</div>`;
+  let foot="";
+  if(canCancel()&&o.stage!=="cancelled"&&o.stage!=="delivered"&&!o.isArchived)foot+=`<button class="btn-outline-danger btn-sm" data-act="cancel" data-id="${o.id}">${ic('x','13px')} Cancel Order</button>`;
+  foot+=`<span class="grow"></span>`;
+  if(isAdmin()&&(o.stage==="delivered"||o.stage==="cancelled")&&!o.isArchived)foot+=`<button class="btn-secondary btn-sm" data-act="archive" data-id="${o.id}">${ic('archive','13px')} Archive</button>`;
+  if(isAdmin()&&o.isArchived)foot+=`<button class="btn-secondary btn-sm" data-act="restore" data-id="${o.id}">${ic('rotate','13px')} Restore</button>`;
+  const es=editScope(o);if(es)foot+=`<button class="btn-secondary btn-sm" data-act="edit" data-id="${o.id}">${ic('pencil','13px')} ${es==="items"?"Adjust Items":"Edit"}</button>`;
+  if(!o.isArchived)foot+=`<button class="btn-secondary btn-sm" data-act="note" data-id="${o.id}">${ic('edit','13px')} Add Note</button>`;
+  if(canAdvance(o)&&!o.isArchived){const nx=nextStageOf(o);if(nx)foot+=`<button class="btn-primary btn-sm" data-act="adv" data-id="${o.id}">${esc(nx.en)} ${ic('chevright','13px')}</button>`;}
+  foot+=`<button class="btn-ghost btn-sm" data-close>Close</button>`;
+  openModal(`<h3>${esc(o.customerName)}</h3><div class="sub">Order #${o.id} · Created by ${esc(o.createdByName)} · ${ago(o.createdAt)}</div>
+    <div style="padding:6px 20px 0">${badges}</div>
+    <div class="body">${grid}${itemsTbl}${tl}</div><div class="foot">${foot}</div>`);
+}
+
+/* ===== Order form ===== */
+function itemRow(it){
+  it=it||{};
+  const pOpts=`<option value="">Product…</option>`+state.products.map(p=>`<option ${it.productName===p.name?'selected':''}>${esc(p.name)}</option>`).join("");
+  const fOpts=`<option value="">Filling…</option>`+state.fillings.map(f=>`<option ${it.filling===f?'selected':''}>${esc(f)}</option>`).join("");
+  const gOpts=`<option value="">Grind…</option>`+state.grinds.map(g=>`<option ${it.grind===g?'selected':''}>${esc(g)}</option>`).join("");
+  return `<div style="display:flex;gap:6px;margin-bottom:8px;align-items:center" data-itemrow>
+    <select class="it-prod" style="flex:2;min-width:84px">${pOpts}</select>
+    <select class="it-fill" style="flex:1;min-width:70px">${fOpts}</select>
+    <select class="it-grind" style="flex:1;min-width:78px">${gOpts}</select>
+    <input type="number" min="1" value="${it.quantity||1}" class="it-qty" style="width:54px;flex:none"/>
+    <button type="button" class="btn-ghost btn-icon" data-delrow>${ic('x','15px')}</button></div>`;
+}
+function contactInner(c,selPhone,selAddr){
+  const phones=c?(c.phones||[]):[],addrs=c?(c.addresses||[]):[];
+  const phone=phones.length?`<select id="ofPhone">${phones.map(p=>`<option ${p===selPhone?'selected':''}>${esc(p)}</option>`).join("")}</select>`:`<input id="ofPhone" value="${esc(selPhone||'')}" placeholder="${c?'no phone on file':'select a customer'}"/>`;
+  const addr=addrs.length?`<select id="ofAddr">${addrs.map(a=>`<option ${a===selAddr?'selected':''}>${esc(a)}</option>`).join("")}</select>`:`<input id="ofAddr" value="${esc(selAddr||'')}" placeholder="${c?'no address on file':'select a customer'}"/>`;
+  return {phone,addr};
+}
+function openOrderForm(o,scope){
+  scope=scope||"full";
+  if(scope==="full"&&!state.customers.length){toast("Add a customer first in the Customers tab",true);return;}
+  const itemsSection=`<div class="field"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><label style="margin:0">Items / الأصناف</label><button type="button" class="btn-secondary btn-sm" id="ofAddItem">${ic('plus','13px')} Add</button></div>
+      <div style="display:flex;gap:6px;margin-bottom:5px"><div style="flex:2;min-width:84px;font-size:11px;color:var(--muted-fg);font-weight:500">Product</div><div style="flex:1;min-width:70px;font-size:11px;color:var(--muted-fg);font-weight:500">Filling</div><div style="flex:1;min-width:78px;font-size:11px;color:var(--muted-fg);font-weight:500">Grind</div><div style="width:54px;flex:none;font-size:11px;color:var(--muted-fg);font-weight:500">Qty</div><div style="width:32px;flex:none"></div></div>
+      <div id="ofItems">${(o&&o.items.length?o.items:[{}]).map(i=>itemRow(i)).join("")}</div></div>`;
+  let body,title,sub;
+  if(scope==="items"){
+    title="Adjust Items"; sub=`${esc(o.customerName)} · Preparation & Packing`;
+    body=`<div class="hint">Order details are locked. You can adjust the product items only — the order creator will be notified.<br>التفاصيل مقفلة — يمكنك تعديل الأصناف فقط وسيتم إشعار منشئ الطلب.</div>${itemsSection}`;
+  }else{
+    let prefDate=new Date().toISOString().slice(0,10),prefH="9",prefM="00",prefAp="AM";
+    if(o&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(o.preferredDeliveryTime||"")){const dt=o.preferredDeliveryTime;prefDate=dt.slice(0,10);let h=+dt.slice(11,13);prefM=dt.slice(14,16);prefAp=h>=12?"PM":"AM";let h12=h%12;if(h12===0)h12=12;prefH=String(h12);}
+    const hourOpts=Array.from({length:12},(_,i)=>i+1).map(h=>`<option value="${h}" ${String(h)===prefH?'selected':''}>${h}</option>`).join("");
+    const minOpts=Array.from({length:12},(_,i)=>String(i*5).padStart(2,'0')).map(m=>`<option value="${m}" ${m===prefM?'selected':''}>${m}</option>`).join("");
+    const cust=o&&o.customerId?customerById(o.customerId):null;
+    const ci=contactInner(cust,o?o.contactPhone:"",o?o.deliveryLocation:"");
+    const custOpts=`<option value="">— select customer —</option>`+state.customers.map(c=>`<option value="${c.id}" ${o&&o.customerId===c.id?'selected':''}>${esc(c.name)}</option>`).join("");
+    title=o?"Edit Order":"New Order"; sub=o?`Editing order for ${esc(o.customerName)}`:"Create a new delivery order";
+    body=`
+    <div class="field"><label>Customer / العميل</label><select id="ofCust">${custOpts}</select></div>
+    <div class="row">
+      <div class="field" style="flex:1"><label>Phone</label><div id="ofPhoneWrap">${ci.phone}</div></div>
+      <div class="field" style="flex:1"><label>Order Date</label><input type="date" id="ofDate" value="${o?esc(o.orderDate):new Date().toISOString().slice(0,10)}"/></div>
+    </div>
+    <div class="field"><label>Delivery Address / العنوان</label><div id="ofAddrWrap">${ci.addr}</div></div>
+    <div class="field"><label>Preferred Delivery Date &amp; Time</label>
+      <div class="row" style="gap:8px">
+        <input type="date" id="ofPrefDate" value="${esc(prefDate)}" style="flex:2;min-width:130px"/>
+        <select id="ofPrefHour" style="flex:1;min-width:58px">${hourOpts}</select>
+        <select id="ofPrefMin" style="flex:1;min-width:58px">${minOpts}</select>
+        <select id="ofPrefAmpm" style="flex:1;min-width:62px"><option ${prefAp==='AM'?'selected':''}>AM</option><option ${prefAp==='PM'?'selected':''}>PM</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Internal Notes <span class="muted" style="font-weight:400">(optional — visible to all staff)</span></label><textarea id="ofNotes" rows="2" placeholder="e.g. Fragile items…">${esc(o?o.notes:'')}</textarea></div>
+    ${itemsSection}`;
+  }
+  openModal(`<h3>${title}</h3><div class="sub">${sub}</div><div class="body">${body}</div><div class="foot"><button class="btn-ghost btn-sm" data-close>Cancel</button><button class="btn-primary btn-sm" id="ofSave">${o?"Save Changes":"Create Order"}</button></div>`,true);
+  if(scope==="full"){$("#ofCust").onchange=()=>{const c=customerById($("#ofCust").value);const ci2=contactInner(c,"","");$("#ofPhoneWrap").innerHTML=ci2.phone;$("#ofAddrWrap").innerHTML=ci2.addr;};}
+  $("#ofAddItem").onclick=()=>$("#ofItems").insertAdjacentHTML("beforeend",itemRow());
+  $("#ofItems").onclick=e=>{if(e.target.closest("[data-delrow]")){const rows=$("#ofItems").querySelectorAll("[data-itemrow]");if(rows.length>1)e.target.closest("[data-itemrow]").remove();}};
+  $("#ofSave").onclick=()=>saveOrder(o,scope);
+}
+function readItems(){return [...$("#ofItems").querySelectorAll("[data-itemrow]")].map(r=>({productName:r.querySelector(".it-prod").value.trim(),filling:r.querySelector(".it-fill").value,grind:r.querySelector(".it-grind").value,quantity:+r.querySelector(".it-qty").value||0})).filter(i=>i.productName&&i.quantity>0);}
+function saveOrder(o,scope){
+  scope=scope||"full";
+  const items=readItems();if(!items.length)return toast("Add at least one product",true);
+  if(o&&scope==="items"){
+    if(!editScope(o))return toast("Not allowed",true);
+    o.items=items;
+    o.activityLog.unshift({id:cryptoId(),action:"Items adjusted · Preparation & Packing",note:null,performedByName:me.fullName,createdAt:nowISO()});
+    if(o.createdById&&o.createdById!==me.id)notify(o.createdById,`Order #${o.id} (${o.customerName}) — items adjusted during Preparation by ${me.fullName}`,o.id);
+    save();closeModal();render();toast("Items updated — order creator notified");return;
+  }
+  const cid=$("#ofCust").value;const cust=customerById(cid);
+  if(!cust)return toast("Select a customer",true);
+  const phoneEl=$("#ofPhone"),addrEl=$("#ofAddr");
+  const phone=(phoneEl?phoneEl.value:"").trim(),loc=(addrEl?addrEl.value:"").trim();
+  const date=$("#ofDate").value,notes=$("#ofNotes").value.trim();
+  const pd=$("#ofPrefDate").value;let ph=+$("#ofPrefHour").value;const pm=$("#ofPrefMin").value,pap=$("#ofPrefAmpm").value;
+  if(pap==="PM"&&ph<12)ph+=12;if(pap==="AM"&&ph===12)ph=0;
+  const pref=pd?`${pd}T${String(ph).padStart(2,'0')}:${pm}`:"";
+  if(!phone||!pref||!loc)return toast("Phone, preferred date/time and address are required",true);
+  if(o){if(!editScope(o))return toast("Not allowed",true);Object.assign(o,{customerId:cid,customerName:cust.name,orderDate:date,contactPhone:phone,preferredDeliveryTime:pref,deliveryLocation:loc,notes,items});o.activityLog.unshift({id:cryptoId(),action:"Order details updated",note:null,performedByName:me.fullName,createdAt:nowISO()});toast("Order updated");}
+  else{if(!canCreate())return toast("Only Sales can create",true);state.seq++;const t=nowISO();state.orders.push({id:state.seq,customerId:cid,customerName:cust.name,orderDate:date,contactPhone:phone,preferredDeliveryTime:pref,deliveryLocation:loc,stage:"new",assignedDriverId:null,isOutsourced:false,outsourcedDriverName:null,outsourceCost:null,dispatchWindow:null,isDelayed:false,isArchived:false,notes,createdById:me.id,createdByName:me.fullName,createdAt:t,stageUpdatedAt:t,items,activityLog:[{id:cryptoId(),action:"Order created",note:null,performedByName:me.fullName,createdAt:t}]});toast("Order created");}
+  closeModal();render();
+}
+
+/* ===== Advance / dispatch ===== */
+function advance(id){
+  const o=state.orders.find(x=>x.id==id);if(!o)return;
+  if(!canAdvance(o))return toast("Not allowed for your role",true);
+  const nx=nextStageOf(o);if(!nx)return;
+  if(nx.id==="dispatch"){openAssign(o);return;}
+  o.stage=nx.id;o.stageUpdatedAt=nowISO();o.isDelayed=false;
+  o.activityLog.unshift({id:cryptoId(),action:"Stage advanced to: "+nx.en,note:null,performedByName:me.fullName,createdAt:nowISO()});
+  toast("Moved to "+nx.en);render();
+}
+function openAssign(o){
+  const win=windowForNow();
+  const body=`
+    <div class="toggle-btns" style="margin-bottom:14px"><button type="button" id="tOwn" class="on">Our Driver</button><button type="button" id="tOut">Outsourced</button></div>
+    <div id="ownWrap"><div class="field"><label>Select Driver</label><select id="amDriver"><option value="">Choose a driver…</option>${driversList().map(d=>`<option value="${d.id}">${esc(d.fullName)} (@${esc(d.username)})</option>`).join("")}</select></div></div>
+    <div id="outWrap" style="display:none">
+      <div class="field"><label>External Driver / Company Name</label><input id="amOutName" placeholder="e.g. Fast Delivery Co."/></div>
+      <div class="field"><label>Cost (JOD)</label><input type="number" step="0.001" id="amOutCost" placeholder="e.g. 5.500"/></div>
+    </div>
+    <div class="hint">${win==="same_day"?`Now is before ${state.settings.samedayCutoffTime} → <b>Same-day</b> (pickup by ${state.settings.finalPickupTime}).`:`Now is at/after ${state.settings.samedayCutoffTime} → <b>Next-day</b> delivery.`}</div>`;
+  openModal(`<h3>Assign Driver — Dispatch</h3><div class="sub">Assign a driver for ${esc(o.customerName)}</div><div class="body">${body}</div><div class="foot"><button class="btn-ghost btn-sm" data-close>Cancel</button><button class="btn-primary btn-sm" id="amGo">Confirm &amp; Dispatch</button></div>`);
+  let out=false;
+  $("#tOwn").onclick=()=>{out=false;$("#tOwn").classList.add("on");$("#tOut").classList.remove("on");$("#ownWrap").style.display="block";$("#outWrap").style.display="none";};
+  $("#tOut").onclick=()=>{out=true;$("#tOut").classList.add("on");$("#tOwn").classList.remove("on");$("#ownWrap").style.display="none";$("#outWrap").style.display="block";};
+  $("#amGo").onclick=()=>{
+    if(out){const nm=$("#amOutName").value.trim();if(!nm)return toast("Driver name required",true);o.isOutsourced=true;o.outsourcedDriverName=nm;o.outsourceCost=+$("#amOutCost").value||0;o.assignedDriverId=null;}
+    else{const d=$("#amDriver").value;if(!d)return toast("Please select a driver",true);o.assignedDriverId=d;o.isOutsourced=false;o.outsourcedDriverName=null;o.outsourceCost=null;}
+    o.dispatchWindow=windowForNow();o.stage="dispatch";o.stageUpdatedAt=nowISO();o.isDelayed=false;
+    o.activityLog.unshift({id:cryptoId(),action:"Stage advanced to: Dispatch"+(out?` (Outsourced: ${o.outsourcedDriverName})`:""),note:null,performedByName:me.fullName,createdAt:nowISO()});
+    closeModal();toast("Order dispatched");render();
+  };
+}
+function archiveOrder(id,on){const o=state.orders.find(x=>x.id==id);if(!o||!isAdmin())return;if(on&&o.stage!=="delivered"&&o.stage!=="cancelled")return toast("Only delivered or cancelled orders can be archived",true);o.isArchived=on;o.activityLog.unshift({id:cryptoId(),action:on?"Order archived":"Order restored from archive",note:null,performedByName:me.fullName,createdAt:nowISO()});closeModal();render();toast(on?"Order archived":"Order restored");}
+function cancelOrder(id){const o=state.orders.find(x=>x.id==id);if(!o||!canCancel())return;if(!confirm("Cancel this order? It will move to the Cancelled column."))return;o.stage="cancelled";o.stageUpdatedAt=nowISO();o.isDelayed=false;o.activityLog.unshift({id:cryptoId(),action:"Order cancelled",note:null,performedByName:me.fullName,createdAt:nowISO()});closeModal();render();toast("Order cancelled");}
+function openNotifications(){
+  const list=state.notifications.filter(n=>n.userId===me.id).slice().reverse();
+  const body=list.length?list.map(n=>`<div class="kv" ${n.orderId?`data-detail="${n.orderId}"`:''} style="${n.orderId?'cursor:pointer;':''}${n.read?'':'background:rgba(245,158,11,.07);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:4px'}"><span style="flex:1">${esc(n.text)}</span><span class="t muted" style="white-space:nowrap;margin-left:10px">${ago(n.createdAt)}</span></div>`).join(""):'<div class="col-empty">No notifications.</div>';
+  openModal(`<h3>${ic('bell')} Notifications / الإشعارات</h3><div class="body">${body}</div><div class="foot"><button class="btn-ghost btn-sm" data-close>Close</button></div>`);
+  state.notifications.forEach(n=>{if(n.userId===me.id)n.read=true;});save();render();
+}
+function openNoteForm(id){
+  const o=state.orders.find(x=>x.id==id);if(!o)return;
+  openModal(`<h3>Add Note</h3><div class="sub">${esc(o.customerName)} · ${esc(stageObj(o.stage).en)} / ${esc(stageObj(o.stage).ar)}</div><div class="body"><div class="field"><label>Note for this step / ملاحظة لهذه المرحلة</label><textarea id="ntText" rows="3" placeholder="Write a note…"></textarea></div></div><div class="foot"><button class="btn-ghost btn-sm" data-close>Cancel</button><button class="btn-primary btn-sm" id="ntGo">Add Note</button></div>`);
+  $("#ntGo").onclick=()=>{const txt=$("#ntText").value.trim();if(!txt)return toast("Write a note",true);o.activityLog.unshift({id:cryptoId(),action:"Note · "+stageObj(o.stage).en,note:txt,performedByName:me.fullName,createdAt:nowISO()});save();openDetail(o);toast("Note added");};
+}
+
+/* ===== Archived ===== */
+function archivedHTML(){
+  return `<div class="page"><h2>${ic('archive')} Archived Orders / الطلبات المؤرشفة</h2>
+    <div class="box"><div class="row">
+      <div class="field" style="margin:0"><label>Customer</label><input id="arcCust" placeholder="name…"/></div>
+      <div class="field" style="margin:0"><label>Status</label><select id="arcStatus"><option value="">All</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select></div>
+      <div class="field" style="margin:0"><label>From date</label><input type="date" id="arcFrom"/></div>
+      <div class="field" style="margin:0"><label>To date</label><input type="date" id="arcTo"/></div>
+    </div></div>
+    <div class="box" id="arcList" style="padding:6px"></div></div>`;
+}
+function statusBadge(stage){return stage==="cancelled"?'<span class="badge destructive">Cancelled</span>':'<span class="badge" style="color:#34d399;border-color:rgba(52,211,153,.35);background:rgba(6,78,59,.4)">Delivered</span>';}
+function renderArc(){
+  if(!$("#arcList"))return;
+  const cust=($("#arcCust").value||"").trim().toLowerCase(),from=$("#arcFrom").value,to=$("#arcTo").value,st=$("#arcStatus")?$("#arcStatus").value:"";
+  let a=state.orders.filter(o=>o.isArchived);
+  if(role()==="driver")a=a.filter(o=>o.assignedDriverId===me.id);
+  if(cust)a=a.filter(o=>o.customerName.toLowerCase().includes(cust));
+  if(st)a=a.filter(o=>o.stage===st);
+  if(from)a=a.filter(o=>o.orderDate>=from);
+  if(to)a=a.filter(o=>o.orderDate<=to);
+  $("#arcList").innerHTML=a.length?`<div class="tablewrap"><table><thead><tr><th>#</th><th>Customer</th><th>Status</th><th>Driver</th><th>Date</th></tr></thead><tbody>${a.map(o=>`<tr data-detail="${o.id}" style="cursor:pointer"><td>${o.id}</td><td>${esc(o.customerName)}</td><td>${statusBadge(o.stage)}</td><td class="muted">${o.isOutsourced?esc(o.outsourcedDriverName):(o.assignedDriverId?esc(userById(o.assignedDriverId)?.fullName||''):'—')}</td><td class="muted">${esc(o.orderDate)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="col-empty">No archived orders match.</div>';
+}
+
+/* ===== Reports ===== */
+function reportsHTML(){
+  const from=window._repFrom||"",to=window._repTo||"";
+  const inRange=o=>(!from||o.orderDate>=from)&&(!to||o.orderDate<=to);
+  let base=state.orders.filter(inRange);
+  if(role()==="driver")base=base.filter(o=>o.assignedDriverId===me.id);
+  const active=base.filter(o=>!o.isArchived);
+  const archived=base.filter(o=>o.isArchived);
+  const delayed=active.filter(isLate).length;
+  const rangeLabel=(from||to)?`<span class="badge accent-outline" style="margin-left:6px">${from||'…'} → ${to||'…'}</span>`:'';
+  const max=Math.max(1,...STAGES.map(s=>active.filter(o=>o.stage===s.id).length));
+  const bars=STAGES.map(s=>{const c=active.filter(o=>o.stage===s.id).length;return `<div class="bar-row"><div class="lbl">${s.en}</div><div class="bar-track"><div class="bar-fill" style="width:${c/max*100}%"></div></div><div style="width:28px;text-align:right;font-weight:600">${c}</div></div>`;}).join("");
+  let cost="";
+  if(canSeeCost()){const outs=base.filter(o=>o.isOutsourced&&o.outsourceCost);const total=outs.reduce((a,b)=>a+(+b.outsourceCost||0),0);cost=`<div class="box"><h2 style="font-size:15px">Outsourced delivery cost</h2><div class="stat-grid"><div class="b"><div class="n">${total.toFixed(2)}</div><div class="l">Total JOD · ${outs.length} orders</div></div></div></div>`;}
+  return `<div class="page"><h2>${ic('chart')} Reports / التقارير ${rangeLabel}</h2>
+    <div class="box"><div class="row" style="align-items:flex-end">
+      <div class="field" style="margin:0"><label>From date</label><input type="date" id="repFrom" value="${esc(from)}"/></div>
+      <div class="field" style="margin:0"><label>To date</label><input type="date" id="repTo" value="${esc(to)}"/></div>
+      <div style="flex:0"><button class="btn-secondary btn-sm" id="repClear">Clear</button></div>
+    </div></div>
+    <div class="box"><div class="stat-grid">
+      <div class="b"><div class="n">${active.length}</div><div class="l">Active orders</div></div>
+      <div class="b"><div class="n" style="color:${delayed?'#f87171':'var(--primary)'}">${delayed}</div><div class="l">Delayed</div></div>
+      <div class="b"><div class="n">${archived.length}</div><div class="l">Archived</div></div>
+    </div></div>
+    <div class="box"><h2 style="font-size:15px">Orders by stage</h2>${bars}</div>${cost}</div>`;
+}
+
+/* ===== Users ===== */
+function usersHTML(){
+  return `<div class="page"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><h2 style="margin:0">${ic('users')} User Management</h2><span class="badge secondary">${state.users.length} users</span><span style="flex:1"></span><button class="btn-primary btn-sm" id="addUserBtn">${ic('plus','13px')} Add User</button></div>
+    <div class="box" style="padding:0"><div class="tablewrap" style="border:none"><table>
+      <thead><tr><th>Name</th><th>Username</th><th>Role</th><th style="text-align:center">Enabled</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody>${state.users.map(u=>{const rb=ROLE_BADGE[u.role];return `<tr>
+        <td><div style="font-weight:500">${esc(u.fullName)}</div>${u.mustChangePassword?'<div style="font-size:10px;color:var(--accent-fg)">must change password</div>':''}</td>
+        <td class="muted">@${esc(u.username)}</td>
+        <td><span class="badge" style="color:${rb.c};border-color:${rb.b};background:${rb.bg}">${u.role}</span></td>
+        <td style="text-align:center">${u.username===PRIMARY_ADMIN?'<span class="badge secondary">locked</span>':`<button class="btn-sm ${u.enabled?'btn-secondary':'btn-ghost'}" data-utoggle="${u.id}">${u.enabled?'On':'Off'}</button>`}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn-ghost btn-icon" data-uedit="${u.id}" title="Edit">${ic('pencil','14px')}</button>
+          <button class="btn-ghost btn-icon" data-ureset="${u.id}" title="Reset password">${ic('key','14px')}</button>
+          ${u.username!==PRIMARY_ADMIN&&u.id!==me.id?`<button class="btn-ghost btn-icon" data-udel="${u.id}" title="Delete" style="color:#f87171">${ic('trash','14px')}</button>`:''}
+        </td></tr>`;}).join("")}</tbody></table></div></div></div>`;
+}
+function openUserForm(u){
+  const body=`
+    ${!u?`<div class="field"><label>Username</label><input id="ufUser"/></div>`:''}
+    <div class="field"><label>Full Name</label><input id="ufName" value="${esc(u?u.fullName:'')}"/></div>
+    <div class="field"><label>Role</label><select id="ufRole">${ROLES.map(r=>`<option value="${r}" ${u&&u.role===r?'selected':''}>${ROLE_LABEL[r]}</option>`).join("")}</select></div>
+    ${!u?`<div class="field"><label>Password <span class="muted" style="font-weight:400">(min 6 — give to the user)</span></label><input id="ufPass" type="text"/></div>`:''}
+    <div style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="ufMust" style="width:auto" ${u&&u.mustChangePassword?'checked':''}/><label style="margin:0">Must change password on first login</label></div>`;
+  openModal(`<h3>${u?"Edit User":"Add User"}</h3><div class="sub">${u?`Editing ${esc(u.fullName)}`:"Create a new team member account"}</div><div class="body">${body}</div><div class="foot"><button class="btn-ghost btn-sm" data-close>Cancel</button><button class="btn-primary btn-sm" id="ufSave">${u?"Save Changes":"Add User"}</button></div>`);
+  $("#ufSave").onclick=()=>{
+    const name=$("#ufName").value.trim(),rl=$("#ufRole").value,must=$("#ufMust").checked;
+    if(!name)return toast("Full name required",true);
+    if(u){u.fullName=name;u.role=rl;u.mustChangePassword=must;toast("User updated");}
+    else{const un=$("#ufUser").value.trim(),pw=$("#ufPass").value;if(!un)return toast("Username required",true);if(state.users.some(x=>x.username.toLowerCase()===un.toLowerCase()))return toast("Username already exists",true);if(!pw||pw.length<6)return toast("Password required, min 6 characters",true);state.users.push({id:cryptoId(),username:un,fullName:name,role:rl,password:pw,enabled:true,mustChangePassword:must,createdAt:nowISO()});toast("User created");}
+    closeModal();render();
+  };
+}
+function openResetPw(u){
+  openModal(`<h3>Reset Password</h3><div class="sub">Set a new password for ${esc(u.fullName)}</div><div class="body"><div class="field"><label>New Password (min 6)</label><input id="rpPass" type="text"/></div><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="rpMust" style="width:auto" checked/><label style="margin:0">Require change on next login</label></div></div><div class="foot"><button class="btn-ghost btn-sm" data-close>Cancel</button><button class="btn-primary btn-sm" id="rpGo">Reset Password</button></div>`);
+  $("#rpGo").onclick=()=>{const p=$("#rpPass").value;if(!p||p.length<6)return toast("Min 6 characters",true);u.password=p;u.mustChangePassword=$("#rpMust").checked;closeModal();render();toast("Password reset for "+u.fullName);};
+}
+
+/* ===== Settings ===== */
+function settingsHTML(){
+  return `<div class="page"><h2>${ic('settings')} Settings / الإعدادات</h2>
+    <div class="box"><div class="hint">Orders entering Dispatch before the same-day cutoff must be picked up by the final time, else flagged Delayed. After the cutoff = next-day.</div>
+    <div class="row"><div class="field" style="margin:0"><label>Same-day cutoff</label><input type="time" id="setCut" value="${state.settings.samedayCutoffTime}"/></div><div class="field" style="margin:0"><label>Final pickup time</label><input type="time" id="setFin" value="${state.settings.finalPickupTime}"/></div></div>
+    <div style="margin-top:14px"><button class="btn-primary btn-sm" id="setSave">Save settings</button></div></div>
+    ${isAdmin()?`<div class="box"><h2 style="font-size:15px;color:#f87171">Danger zone</h2><button class="btn-outline-danger btn-sm" id="resetDemo">Reset demo data</button> <span class="muted" style="font-size:12px">Clears all orders &amp; users on this device.</span></div>`:''}</div>`;
+}
+
+/* ===== Products catalog (admin) ===== */
+function productsHTML(){
+  const adm=isAdmin();
+  const chip=(arr,delAttr)=>arr.map(x=>`<span class="badge secondary" style="font-size:12px;padding:4px 9px">${esc(x)}${adm?` <span class="x" ${delAttr}="${esc(x)}" style="margin-left:3px">×</span>`:''}</span>`).join("");
+  return `<div class="page">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><h2 style="margin:0">${ic('pkg')} Products / المنتجات</h2><span class="badge secondary">${state.products.length}</span><span style="flex:1"></span>${adm?`<button class="btn-primary btn-sm" id="addProdBtn">${ic('plus','13px')} Add Product</button>`:''}</div>
+    <div class="box" style="padding:0"><div class="tablewrap" style="border:none"><table><thead><tr><th>Product name</th>${adm?'<th style="text-align:right">Actions</th>':''}</tr></thead><tbody>
+      ${state.products.map(p=>`<tr><td>${esc(p.name)}</td>${adm?`<td style="text-align:right;white-space:nowrap"><button class="btn-ghost btn-icon" data-pedit="${p.id}">${ic('pencil','14px')}</button><button class="btn-ghost btn-icon" data-pdel="${p.id}" style="color:#f87171">${ic('trash','14px')}</button></td>`:''}</tr>`).join("")||`<tr><td colspan="2" class="muted">No products yet.</td></tr>`}
+    </tbody></table></div></div>
+    <div class="box"><h2 style="font-size:15px">Filling options / خيارات التعبئة</h2>
+      ${adm?`<div style="display:flex;gap:8px;margin-bottom:10px"><input id="fillInput" placeholder="e.g. 500 g" style="flex:1"/><button class="btn-secondary btn-sm" id="addFillBtn">${ic('plus','13px')} Add</button></div>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${chip(state.fillings,'data-fdel')||'<span class="muted">No fillings.</span>'}</div>
+    </div>
+    <div class="box"><h2 style="font-size:15px">Grind options / خيارات الطحن</h2>
+      ${adm?`<div style="display:flex;gap:8px;margin-bottom:10px"><input id="grindInput" placeholder="e.g. وسط / Medium" style="flex:1"/><button class="btn-secondary btn-sm" id="addGrindBtn">${ic('plus','13px')} Add</button></div>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${chip(state.grinds,'data-gdel')||'<span class="muted">No grind options.</span>'}</div>
+    </div>
+  </div>`;
+}
+function openProductForm(p){
+  openModal(`<h3>${p?"Edit Product":"Add Product"}</h3><div class="body"><div class="field"><label>Product name</label><input id="pfName" value="${esc(p?p.name:'')}"/></div></div><div class="foot"><button class="btn-ghost btn-sm" data-close>Cancel</button><button class="btn-primary btn-sm" id="pfGo">Save</button></div>`);
+  $("#pfGo").onclick=()=>{const n=$("#pfName").value.trim();if(!n)return toast("Name required",true);if(state.products.some(x=>x.name.toLowerCase()===n.toLowerCase()&&(!p||x.id!==p.id)))return toast("Product already exists",true);if(p)p.name=n;else state.products.push({id:cryptoId(),name:n});closeModal();render();toast("Saved");};
+}
+
+/* ===== Customers (admin/sales) ===== */
+function custRowsHTML(){
+  const q=(window._custSearch||"").trim().toLowerCase();
+  let list=state.customers;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q)||c.phones.some(p=>p.toLowerCase().includes(q))||c.addresses.some(a=>a.toLowerCase().includes(q)));
+  if(!list.length)return '<div class="col-empty">No customers match.</div>';
+  return `<div class="tablewrap" style="border:none"><table><thead><tr><th>Name</th><th>Phones</th><th>Addresses</th><th style="text-align:right">Actions</th></tr></thead><tbody>${list.map(c=>`<tr><td style="font-weight:500">${esc(c.name)}</td><td class="muted">${c.phones.map(esc).join("<br>")||'—'}</td><td class="muted">${c.addresses.map(esc).join("<br>")||'—'}</td><td style="text-align:right;white-space:nowrap"><button class="btn-ghost btn-icon" data-cedit="${c.id}">${ic('pencil','14px')}</button><button class="btn-ghost btn-icon" data-cdel="${c.id}" style="color:#f87171">${ic('trash','14px')}</button></td></tr>`).join("")}</tbody></table></div>`;
+}
+function renderCustList(){if($("#custList"))$("#custList").innerHTML=custRowsHTML();}
+function customersHTML(){
+  return `<div class="page">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap"><h2 style="margin:0">${ic('users')} Customers / العملاء</h2><span class="badge secondary">${state.customers.length}</span><span style="flex:1"></span><button class="btn-primary btn-sm" id="addCustBtn">${ic('plus','13px')} Add Customer</button></div>
+    <div class="box"><div class="searchbox" style="max-width:none;flex:1"><span class="si">${ic('search','14px')}</span><input type="text" id="custSearch" placeholder="Search name, phone, address…" value="${esc(window._custSearch||'')}"/></div></div>
+    <div class="box" id="custList" style="padding:6px">${custRowsHTML()}</div></div>`;
+}
+function custLineRow(cls,v,ph){return `<div style="display:flex;gap:6px;margin-bottom:6px" data-linerow><input class="${cls}" value="${esc(v||'')}" placeholder="${ph}" style="flex:1"/><button type="button" class="btn-ghost btn-icon" data-delline>${ic('x','15px')}</button></div>`;}
+function openCustomerForm(c){
+  const phoneRows=(c&&c.phones.length?c.phones:[""]).map(p=>custLineRow("cf-phone",p,"+962…")).join("");
+  const addrRows=(c&&c.addresses.length?c.addresses:[""]).map(a=>custLineRow("cf-addr",a,"area, street…")).join("");
+  const body=`
+    <div class="field"><label>Customer Name</label><input id="cfName" value="${esc(c?c.name:'')}"/></div>
+    <div class="field"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><label style="margin:0">Phone numbers</label><button type="button" class="btn-secondary btn-sm" id="cfAddPhone">${ic('plus','13px')} Add</button></div><div id="cfPhones">${phoneRows}</div></div>
+    <div class="field"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><label style="margin:0">Addresses</label><button type="button" class="btn-secondary btn-sm" id="cfAddAddr">${ic('plus','13px')} Add</button></div><div id="cfAddrs">${addrRows}</div></div>
+    <div class="hint">When a customer has more than one phone or address, the order form shows a dropdown to pick which one.</div>`;
+  openModal(`<h3>${c?"Edit Customer":"Add Customer"}</h3><div class="body">${body}</div><div class="foot"><button class="btn-ghost btn-sm" data-close>Cancel</button><button class="btn-primary btn-sm" id="cfGo">Save</button></div>`);
+  $("#cfAddPhone").onclick=()=>$("#cfPhones").insertAdjacentHTML("beforeend",custLineRow("cf-phone","","+962…"));
+  $("#cfAddAddr").onclick=()=>$("#cfAddrs").insertAdjacentHTML("beforeend",custLineRow("cf-addr","","area, street…"));
+  $("#cfPhones").onclick=e=>{if(e.target.closest("[data-delline]")){const r=$("#cfPhones").querySelectorAll("[data-linerow]");if(r.length>1)e.target.closest("[data-linerow]").remove();}};
+  $("#cfAddrs").onclick=e=>{if(e.target.closest("[data-delline]")){const r=$("#cfAddrs").querySelectorAll("[data-linerow]");if(r.length>1)e.target.closest("[data-linerow]").remove();}};
+  $("#cfGo").onclick=()=>{
+    const name=$("#cfName").value.trim();if(!name)return toast("Name required",true);
+    const phones=[...$("#cfPhones").querySelectorAll(".cf-phone")].map(i=>i.value.trim()).filter(Boolean);
+    const addrs=[...$("#cfAddrs").querySelectorAll(".cf-addr")].map(i=>i.value.trim()).filter(Boolean);
+    if(!phones.length)return toast("Add at least one phone",true);
+    if(!addrs.length)return toast("Add at least one address",true);
+    if(c){c.name=name;c.phones=phones;c.addresses=addrs;}else state.customers.push({id:cryptoId(),name,phones,addresses:addrs});
+    closeModal();render();toast("Customer saved");
+  };
+}
+
+/* ===== Change own password ===== */
+function openChangePw(){
+  openModal(`<h3>Change Password</h3><div class="body"><div class="field"><label>Current password</label><input type="password" id="cpCur"/></div><div class="field"><label>New password (min 6)</label><input type="password" id="cpNew"/></div><div class="field"><label>Confirm new</label><input type="password" id="cpCon"/></div></div><div class="foot"><button class="btn-ghost btn-sm" data-close>Cancel</button><button class="btn-primary btn-sm" id="cpGo">Change</button></div>`);
+  $("#cpGo").onclick=()=>{if($("#cpCur").value!==me.password)return toast("Current password is incorrect",true);const n=$("#cpNew").value;if(n.length<6)return toast("Min 6 characters",true);if(n!==$("#cpCon").value)return toast("Passwords do not match",true);me.password=n;me.mustChangePassword=false;closeModal();save();toast("Password changed");};
+}
+
+/* ===== Login ===== */
+function renderLogin(){
+  $("#login").innerHTML=`<div class="box">
+    <div class="lwrap">${COFFEE_LOGO}<div class="tt">Order Track</div></div>
+    <h2>Sign in</h2><p class="muted" style="font-size:13px;margin:0 0 18px">Dimitri's Coffee internal dashboard</p>
+    <div class="field"><label>Username</label><input id="liUser" autocomplete="username"/></div>
+    <div class="field"><label>Password</label><input id="liPass" type="password" autocomplete="current-password"/></div>
+    <div class="err" id="liErr"></div>
+    <button class="btn-primary" id="liBtn" style="width:100%;justify-content:center">Sign in</button>
+    <details class="demo"><summary>Demo logins (for testing)</summary><div style="margin-top:8px">${state.users.filter(u=>u.enabled).map(u=>`<div class="drow"><code>${esc(u.username)}</code> / <code>${esc(u.password)}</code> — ${esc(u.fullName)} (${u.role})</div>`).join("")}</div></details>
+  </div>`;
+  $("#liBtn").onclick=doLogin;
+  $("#liPass").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+}
+function doLogin(){
+  const un=$("#liUser").value.trim().toLowerCase(),pw=$("#liPass").value;
+  const u=state.users.find(x=>x.username.toLowerCase()===un);
+  if(!u||!u.enabled||u.password!==pw){$("#liErr").textContent="Invalid credentials";return;}
+  me=u;saveMe();view="board";render();toast("Welcome, "+me.fullName);
+}
+
+/* ===== Global events ===== */
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b){view=b.dataset.tab;window._search="";window._custSearch="";render();}});
+$("#hright").addEventListener("click",e=>{if(e.target.closest("#bellBtn"))openNotifications();else if(e.target.closest("#pwBtn"))openChangePw();else if(e.target.closest("#logoutBtn")){me=null;saveMe();render();}});
+$("#main").addEventListener("click",e=>{
+  if(e.target.closest("[data-stop]"))return;
+  const det=e.target.closest("[data-detail]");if(det){openDetail(state.orders.find(o=>o.id==det.dataset.detail));return;}
+  if(e.target.closest("#newOrderBtn")){openOrderForm(null);return;}
+  if(e.target.closest("#searchClear")){window._search="";render();return;}
+  if(e.target.closest("#addUserBtn")){openUserForm(null);return;}
+  const ue=e.target.closest("[data-uedit]");if(ue){openUserForm(userById(ue.dataset.uedit));return;}
+  const ur=e.target.closest("[data-ureset]");if(ur){openResetPw(userById(ur.dataset.ureset));return;}
+  const ut=e.target.closest("[data-utoggle]");if(ut){const u=userById(ut.dataset.utoggle);u.enabled=!u.enabled;render();return;}
+  const ud=e.target.closest("[data-udel]");if(ud){const u=userById(ud.dataset.udel);if(confirm("Delete user "+u.fullName+"?")){state.users=state.users.filter(x=>x.id!==u.id);render();toast("User deleted");}return;}
+  if(e.target.closest("#setSave")){state.settings.samedayCutoffTime=$("#setCut").value;state.settings.finalPickupTime=$("#setFin").value;save();render();toast("Settings saved");return;}
+  if(e.target.closest("#resetDemo")){if(confirm("Reset demo data on this device?")){state=seed();save();render();toast("Demo reset");}return;}
+  if(e.target.closest("#repClear")){window._repFrom="";window._repTo="";$("#main").innerHTML=reportsHTML();return;}
+  // Products
+  if(e.target.closest("#addProdBtn")){if(!isAdmin())return;openProductForm(null);return;}
+  const pe=e.target.closest("[data-pedit]");if(pe){if(!isAdmin())return;openProductForm(state.products.find(p=>p.id===pe.dataset.pedit));return;}
+  const pdl=e.target.closest("[data-pdel]");if(pdl){if(!isAdmin())return;const p=state.products.find(x=>x.id===pdl.dataset.pdel);if(confirm("Delete product "+p.name+"?")){state.products=state.products.filter(x=>x.id!==p.id);render();toast("Product deleted");}return;}
+  if(e.target.closest("#addFillBtn")){if(!isAdmin())return;const v=($("#fillInput").value||"").trim();if(!v)return;if(state.fillings.some(f=>f.toLowerCase()===v.toLowerCase()))return toast("Already exists",true);state.fillings.push(v);render();toast("Filling added");return;}
+  const fd=e.target.closest("[data-fdel]");if(fd){if(!isAdmin())return;state.fillings=state.fillings.filter(f=>f!==fd.dataset.fdel);render();return;}
+  if(e.target.closest("#addGrindBtn")){if(!isAdmin())return;const v=($("#grindInput").value||"").trim();if(!v)return;if(state.grinds.some(g=>g.toLowerCase()===v.toLowerCase()))return toast("Already exists",true);state.grinds.push(v);render();toast("Grind option added");return;}
+  const gd=e.target.closest("[data-gdel]");if(gd){if(!isAdmin())return;state.grinds=state.grinds.filter(g=>g!==gd.dataset.gdel);render();return;}
+  // Customers
+  if(e.target.closest("#addCustBtn")){if(!canManageCustomers())return;openCustomerForm(null);return;}
+  const ce=e.target.closest("[data-cedit]");if(ce){if(!canManageCustomers())return;openCustomerForm(customerById(ce.dataset.cedit));return;}
+  const cdl=e.target.closest("[data-cdel]");if(cdl){if(!canManageCustomers())return;const c=customerById(cdl.dataset.cdel);if(confirm("Delete customer "+c.name+"?")){state.customers=state.customers.filter(x=>x.id!==c.id);render();toast("Customer deleted");}return;}
+});
+$("#main").addEventListener("input",e=>{
+  if(e.target.id==="search"){window._search=e.target.value;
+    // update columns + stats without losing focus
+    const sel=e.target.selectionStart;
+    const board=$(".board"),summary=$(".summary");
+    const html=boardHTML();
+    $("#main").innerHTML=html;
+    const si=$("#search");if(si){si.focus();si.value=window._search;si.setSelectionRange(sel,sel);}
+    return;}
+  if(["arcCust","arcStatus","arcFrom","arcTo"].includes(e.target.id))renderArc();
+  if(e.target.id==="custSearch"){window._custSearch=e.target.value;renderCustList();}
+  if(["repFrom","repTo"].includes(e.target.id)){window._repFrom=$("#repFrom").value;window._repTo=$("#repTo").value;$("#main").innerHTML=reportsHTML();}
+});
+$("#modal").addEventListener("click",e=>{
+  if(e.target.closest("[data-close]")||e.target.id==="modal"){closeModal();return;}
+  const dt=e.target.closest("[data-detail]");if(dt){const o=state.orders.find(x=>x.id==dt.dataset.detail);if(o)openDetail(o);return;}
+  const a=e.target.closest("[data-act]");if(a){const id=a.dataset.id,act=a.dataset.act;
+    if(act==="adv"){closeModal();advance(id);}
+    else if(act==="note")openNoteForm(id);
+    else if(act==="edit"){closeModal();const o=state.orders.find(x=>x.id==id);openOrderForm(o,editScope(o));}
+    else if(act==="cancel")cancelOrder(id);
+    else if(act==="archive")archiveOrder(id,true);
+    else if(act==="restore")archiveOrder(id,false);
+  }
+});
+$("#brandLink").addEventListener("click",e=>{e.preventDefault();view="board";render();});
+// click anywhere on a date/time field opens its native picker
+document.addEventListener("click",e=>{const el=e.target;if(el&&el.matches&&el.matches("input[type=date],input[type=time]")&&typeof el.showPicker==="function"){try{el.showPicker();}catch(_){}}});
+
+render();
+</script>
+</body>
+</html>

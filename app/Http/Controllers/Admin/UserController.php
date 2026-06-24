@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Mail\SetPasswordInvitation;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+
+class UserController extends Controller
+{
+    public function index()
+    {
+        $users = User::with('role')->latest()->paginate(20);
+
+        return view('admin.users.index', compact('users'));
+    }
+
+    public function create()
+    {
+        $roles = Role::orderBy('name')->get();
+
+        return view('admin.users.create', compact('roles'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'username'  => 'required|string|max:50|unique:users,username|alpha_dash',
+            'full_name' => 'required|string|max:100',
+            'email'     => 'required|email|max:150|unique:users,email',
+            'role_id'   => 'required|exists:roles,id',
+        ]);
+
+        $token = Str::random(64);
+
+        $user = User::create([
+            ...$validated,
+            'is_active'                 => true,
+            'password_setup_token'      => $token,
+            'password_setup_expires_at' => now()->addHours(48),
+        ]);
+
+        Mail::to($user->email)->send(new SetPasswordInvitation($user, $token));
+
+        return redirect()->route('admin.users.index')
+            ->with('success', "User {$user->full_name} created. An invitation email has been sent to {$user->email}.");
+    }
+
+    public function edit(User $user)
+    {
+        $roles = Role::orderBy('name')->get();
+
+        return view('admin.users.edit', compact('user', 'roles'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'username'  => "required|string|max:50|unique:users,username,{$user->id}|alpha_dash",
+            'full_name' => 'required|string|max:100',
+            'email'     => "required|email|max:150|unique:users,email,{$user->id}",
+            'role_id'   => 'required|exists:roles,id',
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', "User {$user->full_name} updated successfully.");
+    }
+
+    public function toggleActive(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->withErrors(['error' => 'You cannot deactivate your own account.']);
+        }
+
+        $user->update(['is_active' => ! $user->is_active]);
+
+        $label = $user->is_active ? 'activated' : 'deactivated';
+
+        return back()->with('success', "User {$user->full_name} has been {$label}.");
+    }
+
+    public function resetPassword(User $user)
+    {
+        $token = Str::random(64);
+
+        $user->update([
+            'password_setup_token'      => $token,
+            'password_setup_expires_at' => now()->addHours(48),
+        ]);
+
+        Mail::to($user->email)->send(new SetPasswordInvitation($user, $token));
+
+        return back()->with('success', "Password reset link sent to {$user->email}.");
+    }
+
+    public function destroy(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->withErrors(['error' => 'You cannot delete your own account.']);
+        }
+
+        $user->delete();
+
+        return redirect()->route('admin.users.index')
+            ->with('success', "User {$user->full_name} has been deleted.");
+    }
+}
