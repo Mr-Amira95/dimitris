@@ -9,11 +9,18 @@ use Illuminate\Support\Str;
 
 class RoleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::withCount('users')->orderBy('name')->get();
+        $search = $request->query('search', '');
 
-        return view('admin.roles.index', compact('roles'));
+        $roles = Role::withCount('users')
+            ->when($search, function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.roles.index', compact('roles', 'search'));
     }
 
     public function create()

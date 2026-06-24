@@ -5,27 +5,35 @@
 @section('page-subtitle', 'Manage the customer directory')
 
 @section('header-actions')
-    <button type="button" onclick="openAddModal()"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-            style="background-color:#f59e0b; color:#111111;"
-            onmouseover="this.style.backgroundColor='#d97706'"
-            onmouseout="this.style.backgroundColor='#f59e0b'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        New Customer
-    </button>
+<form method="GET" action="{{ route('customers.index') }}" id="searchForm" class="flex gap-2 items-center">
+    <div class="relative">
+        <input type="text" name="search" value="{{ $search }}"
+               placeholder="Search by name, phone, or address…"
+               id="searchInput"
+               style="background:#141414; border:1px solid #2d2d2d; border-radius:8px; padding:7px 12px 7px 34px; font-size:13px; color:#f5f5f5; outline:none; width:360px; transition:border-color 0.15s;"
+               oninput="debouncedSearch()">
+        <svg class="absolute left-2.5 top-1/2 -translate-y-1/2" width="14" height="14" fill="none"
+             viewBox="0 0 24 24" stroke="#6b7280" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+        </svg>
+    </div>
+    @if($search)
+        <a href="{{ route('customers.index') }}"
+           style="padding:7px 14px; border-radius:8px; border:1px solid #2d2d2d; font-size:13px; background:transparent; color:#9ca3af; text-decoration:none;"
+           onmouseover="this.style.background='#2a2a2a'; this.style.color='#f5f5f5'"
+           onmouseout="this.style.background='transparent'; this.style.color='#9ca3af'">Clear</a>
+    @endif
+</form>
+<button type="button" onclick="openAddModal()"
+        style="padding:7px 14px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; background:#f59e0b; color:#111; white-space:nowrap; transition:background 0.15s;"
+        onmouseover="this.style.background='#d97706'"
+        onmouseout="this.style.background='#f59e0b'">
+    + New Customer
+</button>
 @endsection
 
 @push('styles')
 <style>
-.search-bar { display:flex; gap:8px; margin-bottom:16px; }
-.search-input {
-    flex:1; background:#1a1a1a; border:1px solid #2d2d2d; border-radius:9px;
-    padding:9px 14px 9px 38px; font-size:13.5px; color:#f5f5f5; outline:none;
-    transition:border-color 0.15s;
-}
-.search-input:focus { border-color:#f59e0b; }
-.search-input::placeholder { color:#4b5563; }
-
 .modal-overlay {
     display:none; position:fixed; inset:0;
     background:rgba(0,0,0,0.65); z-index:200;
@@ -37,6 +45,7 @@
     padding:24px; width:480px; max-width:94vw; max-height:85vh; overflow-y:auto;
 }
 .modal-title { font-size:15px; font-weight:600; color:#f5f5f5; margin-bottom:18px; }
+.modal-subtitle { font-size:13.5px; color:#9ca3af; margin-bottom:16px; line-height:1.5; }
 .form-label { display:block; font-size:12px; font-weight:600; color:#9ca3af; margin-bottom:5px; text-transform:uppercase; letter-spacing:.04em; }
 .form-input {
     width:100%; background:#141414; border:1px solid #2d2d2d; border-radius:8px;
@@ -46,6 +55,7 @@
 .form-input:focus { border-color:#f59e0b; }
 .form-input::placeholder { color:#4b5563; }
 .form-group { margin-bottom:14px; }
+.field-error { color:#ef4444; font-size:12px; margin-top:4px; display:block; }
 .multi-row { display:flex; gap:6px; margin-bottom:6px; }
 .multi-row .form-input { flex:1; }
 .remove-btn {
@@ -71,6 +81,11 @@
     font-size:13px; background:transparent; color:#9ca3af; transition:background 0.15s;
 }
 .btn-cancel:hover { background:#2a2a2a; color:#f5f5f5; }
+.btn-delete {
+    padding:9px 18px; border-radius:8px; border:none; cursor:pointer;
+    font-size:13px; font-weight:600; background:#ef4444; color:#fff; transition:background 0.15s;
+}
+.btn-delete:hover { background:#dc2626; }
 .phone-chip {
     display:inline-block; font-size:12px; color:#9ca3af;
     background:#1e1e1e; border:1px solid #2a2a2a; border-radius:6px; padding:2px 7px;
@@ -80,30 +95,22 @@
 @endpush
 
 @section('content')
-{{-- Search --}}
-<form method="GET" action="{{ route('customers.index') }}">
-    <div class="search-bar">
-        <div class="relative flex-1">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#6b7280" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
-            <input type="text" name="search" value="{{ $search }}"
-                   class="search-input" placeholder="Search by name, phone, or address…">
-        </div>
-        <button type="submit" class="btn-amber">Search</button>
-        @if ($search)
-            <a href="{{ route('customers.index') }}" class="btn-cancel" style="display:inline-flex;align-items:center;">Clear</a>
-        @endif
-    </div>
-</form>
+@php
+    $addFormFailed = old('_form') === 'add_customer';
+    $oldName      = $addFormFailed ? old('name', '') : '';
+    $oldPhones    = $addFormFailed ? (old('phones') ?: ['']) : [''];
+    $oldAddresses = $addFormFailed ? (old('addresses') ?: ['']) : [''];
+@endphp
 
 {{-- Table --}}
 <div class="rounded-xl overflow-hidden" style="background:#1a1a1a; border:1px solid #2d2d2d;">
     <table class="w-full text-sm">
         <thead>
-            <tr style="border-bottom:1px solid #2d2d2d;">
-                <th class="text-left px-5 py-3.5 font-medium" style="color:#6b7280;">Name</th>
-                <th class="text-left px-5 py-3.5 font-medium" style="color:#6b7280;">Phone Numbers</th>
-                <th class="text-left px-5 py-3.5 font-medium" style="color:#6b7280;">Addresses</th>
-                <th class="text-right px-5 py-3.5 font-medium" style="color:#6b7280;">Actions</th>
+            <tr style="border-bottom: 1px solid #222222; background-color: #161616;">
+                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: #9ca3af;">Name</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: #9ca3af;">Phone Numbers</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color: #9ca3af;">Address</th>
+                <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider" style="color: #9ca3af; text-align: right;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -140,10 +147,10 @@
                                     onmouseout="this.style.color='#6b7280'; this.style.backgroundColor='transparent'">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
-                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline"
-                                  onsubmit="return confirm('Remove customer \'{{ addslashes($customer->name) }}\'?')">
+                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline">
                                 @csrf @method('DELETE')
-                                <button type="submit" title="Delete"
+                                <button type="button" title="Delete"
+                                        onclick="openDeleteModal('{{ addslashes($customer->name) }}', this.closest('form'))"
                                         class="p-1.5 rounded transition-colors"
                                         style="color:#6b7280;"
                                         onmouseover="this.style.color='#ef4444'; this.style.backgroundColor='rgba(239,68,68,0.1)'"
@@ -179,18 +186,38 @@
         <div class="modal-title">New Customer</div>
         <form method="POST" action="{{ route('customers.store') }}">
             @csrf
+            <input type="hidden" name="_form" value="add_customer">
+
             <div class="form-group">
                 <label class="form-label">Name <span style="color:#ef4444;">*</span></label>
-                <input type="text" name="name" class="form-input" placeholder="Customer name" maxlength="150" required>
+                <input type="text" name="name" class="form-input" placeholder="Customer name"
+                       maxlength="150" required value="{{ $oldName }}">
+                @if($addFormFailed)
+                    @error('name') <span class="field-error">{{ $message }}</span> @enderror
+                @endif
             </div>
 
             <div class="form-group">
                 <label class="form-label">Phone Numbers <span style="color:#ef4444;">*</span></label>
                 <div id="addPhones">
-                    <div class="multi-row">
-                        <input type="text" name="phones[]" class="form-input" placeholder="e.g. +962 7x xxx xxxx" maxlength="30" required>
-                    </div>
+                    @foreach($oldPhones as $idx => $phone)
+                        <div class="multi-row">
+                            <input type="text" name="phones[]" class="form-input"
+                                   placeholder="e.g. +962 7x xxx xxxx" maxlength="30"
+                                   {{ $idx === 0 ? 'required' : '' }}
+                                   value="{{ $phone }}">
+                            @if($idx > 0)
+                                <button type="button" class="remove-btn" onclick="this.parentElement.remove()" title="Remove">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
+                @if($addFormFailed)
+                    @error('phones') <span class="field-error">{{ $message }}</span> @enderror
+                    @error('phones.0') <span class="field-error">{{ $message }}</span> @enderror
+                @endif
                 <button type="button" class="add-link" onclick="addField('addPhones', 'phones[]', 'Phone number')">
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     Add another phone
@@ -200,9 +227,18 @@
             <div class="form-group">
                 <label class="form-label">Addresses</label>
                 <div id="addAddresses">
-                    <div class="multi-row">
-                        <input type="text" name="addresses[]" class="form-input" placeholder="Delivery address" maxlength="500">
-                    </div>
+                    @foreach($oldAddresses as $idx => $address)
+                        <div class="multi-row">
+                            <input type="text" name="addresses[]" class="form-input"
+                                   placeholder="Delivery address" maxlength="500"
+                                   value="{{ $address }}">
+                            @if($idx > 0)
+                                <button type="button" class="remove-btn" onclick="this.parentElement.remove()" title="Remove">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
                 <button type="button" class="add-link" onclick="addField('addAddresses', 'addresses[]', 'Address')">
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -254,6 +290,18 @@
         </form>
     </div>
 </div>
+
+{{-- ── DELETE CONFIRMATION MODAL ───────────────────────────────────────── --}}
+<div class="modal-overlay" id="deleteModal" onclick="if(event.target===this) closeDeleteModal()">
+    <div class="modal-box" style="max-height:unset;">
+        <div class="modal-title">Delete Customer</div>
+        <p class="modal-subtitle" id="deleteModalMsg"></p>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="btn-delete" onclick="confirmDeleteSubmit()">Delete</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -269,12 +317,10 @@ function openEditModal(id, name, phones, addresses) {
     document.getElementById('editModalForm').action = '/customers/' + id;
     document.getElementById('editName').value = name;
 
-    // Populate phones
     const phonesEl = document.getElementById('editPhones');
     phonesEl.innerHTML = '';
     (phones.length ? phones : ['']).forEach(p => appendRow(phonesEl, 'phones[]', p, 'Phone number', phones.length > 1));
 
-    // Populate addresses
     const addrEl = document.getElementById('editAddresses');
     addrEl.innerHTML = '';
     (addresses.length ? addresses : ['']).forEach(a => appendRow(addrEl, 'addresses[]', a, 'Address', addresses.length > 1));
@@ -283,6 +329,21 @@ function openEditModal(id, name, phones, addresses) {
 }
 function closeEditModal() {
     document.getElementById('editModal').classList.remove('open');
+}
+
+let pendingDeleteForm = null;
+function openDeleteModal(customerName, form) {
+    pendingDeleteForm = form;
+    document.getElementById('deleteModalMsg').textContent = 'Are you sure you want to remove "' + customerName + '"? This action cannot be undone.';
+    document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal() {
+    pendingDeleteForm = null;
+    document.getElementById('deleteModal').classList.remove('open');
+}
+function confirmDeleteSubmit() {
+    if (pendingDeleteForm) pendingDeleteForm.submit();
+    closeDeleteModal();
 }
 
 function appendRow(container, fieldName, value, placeholder, showRemove) {
@@ -308,8 +369,22 @@ function escAttr(s) {
     return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
 }
 
+let searchTimer;
+function debouncedSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        document.getElementById('searchForm').submit();
+    }, 400);
+}
+
+@if($addFormFailed && $errors->any())
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('addModal').classList.add('open');
+});
+@endif
+
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeAddModal(); closeEditModal(); }
+    if (e.key === 'Escape') { closeAddModal(); closeEditModal(); closeDeleteModal(); }
 });
 </script>
 @endpush

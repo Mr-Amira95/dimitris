@@ -92,6 +92,43 @@
             border: none; background: transparent;
         }
         .icon-btn:hover { background: #2a2a2a; color: #f5f5f5; }
+
+        /* Global Modal Overlay Styles */
+        .modal-overlay {
+            display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,0.65); z-index:200;
+            align-items:flex-start; justify-content:center; padding-top:60px;
+        }
+        .modal-overlay.open { display:flex; }
+        .modal-box {
+            background:#1e1e1e; border:1px solid #2d2d2d; border-radius:14px;
+            padding:24px; width:480px; max-width:94vw; max-height:85vh; overflow-y:auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            text-align: left;
+        }
+        .modal-title { font-size:15px; font-weight:600; color:#f5f5f5; margin-bottom:18px; text-align: left; }
+        .form-label { display:block; font-size:12px; font-weight:600; color:#9ca3af; margin-bottom:5px; text-transform:uppercase; letter-spacing:.04em; text-align: left; }
+        .form-input {
+            width:100%; background:#141414; border:1px solid #2d2d2d; border-radius:8px;
+            padding:9px 12px; font-size:13.5px; color:#f5f5f5; outline:none; box-sizing:border-box;
+            transition:border-color 0.15s;
+            text-align: left;
+        }
+        .form-input:focus { border-color:#f59e0b; }
+        .form-input::placeholder { color:#4b5563; }
+        .form-group { margin-bottom:14px; text-align: left; }
+        .field-error { color:#ef4444; font-size:12px; margin-top:4px; display:block; text-align: left; }
+        .modal-actions { display:flex; gap:8px; margin-top:20px; justify-content:flex-end; }
+        .btn-amber {
+            padding:9px 18px; border-radius:8px; border:none; cursor:pointer;
+            font-size:13px; font-weight:600; background:#f59e0b; color:#111; transition:background 0.15s;
+        }
+        .btn-amber:hover { background:#d97706; }
+        .btn-cancel {
+            padding:9px 14px; border-radius:8px; border:1px solid #2d2d2d; cursor:pointer;
+            font-size:13px; background:transparent; color:#9ca3af; transition:background 0.15s;
+        }
+        .btn-cancel:hover { background:#2a2a2a; color:#f5f5f5; }
     </style>
     @stack('styles')
 </head>
@@ -102,7 +139,7 @@
         <div class="flex items-center h-full px-4 gap-2">
 
             {{-- LEFT: Logo --}}
-            <div class="flex-shrink-0" style="width:160px;">
+            <a href="{{ route('kanban.index') }}" class="flex-shrink-0" style="width:160px; text-decoration:none; display:block;">
                 <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="h-8" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                 <div style="display:none; align-items:center; gap:6px;">
                     <div style="width:28px; height:28px; background:rgba(245,158,11,0.15); border-radius:7px; display:flex; align-items:center; justify-content:center;">
@@ -110,7 +147,7 @@
                     </div>
                     <span style="font-size:13px; font-weight:600; color:#f5f5f5; letter-spacing:-0.2px;">Dimitri's</span>
                 </div>
-            </div>
+            </a>
 
             {{-- CENTER: Navigation Tabs --}}
             <nav class="flex-1 flex items-center justify-center overflow-x-auto">
@@ -153,8 +190,8 @@
                 @endif
 
                 @if(auth()->user()->isAdmin())
-                <a href="#" class="nav-tab {{ request()->routeIs('settings.*') ? 'active' : '' }}">
-                    Settings
+                <a href="{{ route('admin.roles.index') }}" class="nav-tab {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                    Roles
                 </a>
                 @endif
             </nav>
@@ -184,14 +221,14 @@
                             <p style="font-size:11.5px; color:#6b7280; margin-top:1px;">{{ auth()->user()->role?->name ?? 'No Role' }}</p>
                         </div>
 
-                        <a href="#" class="user-menu-item">
+                        <button type="button" class="user-menu-item" onclick="openEditProfileModal()" style="width: 100%; text-align: left; background: transparent; border: none; font-family: inherit;">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                             Edit Profile
-                        </a>
-                        <a href="{{ route('password.request') }}" class="user-menu-item">
+                        </button>
+                        <button type="button" class="user-menu-item" onclick="openChangePasswordModal()" style="width: 100%; text-align: left; background: transparent; border: none; font-family: inherit;">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                             Change Password
-                        </a>
+                        </button>
                         <div class="menu-divider"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -244,12 +281,145 @@
         </div>
     </main>
 
+    @auth
+    {{-- ── EDIT PROFILE MODAL ──────────────────────────────────────────────── --}}
+    <div class="modal-overlay" id="editProfileModal" onclick="if(event.target===this) closeEditProfileModal()">
+        <div class="modal-box">
+            <div class="modal-title">Edit Profile</div>
+            <form method="POST" action="{{ route('profile.update') }}">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="_form" value="edit_profile">
+                
+                <div class="form-group">
+                    <label class="form-label" for="profile_full_name">Full Name <span style="color:#ef4444;">*</span></label>
+                    <input type="text" name="full_name" id="profile_full_name" class="form-input" 
+                           value="{{ auth()->user()->full_name }}" required maxlength="100">
+                    @error('full_name')
+                        @if(old('_form') === 'edit_profile')
+                            <span class="field-error">{{ $message }}</span>
+                        @endif
+                    @enderror
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="profile_username">Username <span style="color:#ef4444;">*</span></label>
+                    <input type="text" name="username" id="profile_username" class="form-input" 
+                           value="{{ auth()->user()->username }}" required maxlength="50">
+                    @error('username')
+                        @if(old('_form') === 'edit_profile')
+                            <span class="field-error">{{ $message }}</span>
+                        @endif
+                    @enderror
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="profile_email">Email Address <span style="color:#ef4444;">*</span></label>
+                    <input type="email" name="email" id="profile_email" class="form-input" 
+                           value="{{ auth()->user()->email }}" required maxlength="150">
+                    @error('email')
+                        @if(old('_form') === 'edit_profile')
+                            <span class="field-error">{{ $message }}</span>
+                        @endif
+                    @enderror
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditProfileModal()">Cancel</button>
+                    <button type="submit" class="btn-amber">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ── CHANGE PASSWORD MODAL ───────────────────────────────────────────── --}}
+    <div class="modal-overlay" id="changePasswordModal" onclick="if(event.target===this) closeChangePasswordModal()">
+        <div class="modal-box">
+            <div class="modal-title">Change Password</div>
+            <form method="POST" action="{{ route('profile.password') }}">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="_form" value="change_password">
+                
+                <div class="form-group">
+                    <label class="form-label" for="password_current_password">Current Password <span style="color:#ef4444;">*</span></label>
+                    <input type="password" name="current_password" id="password_current_password" class="form-input" required>
+                    @error('current_password')
+                        @if(old('_form') === 'change_password')
+                            <span class="field-error">{{ $message }}</span>
+                        @endif
+                    @enderror
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password_new_password">New Password <span style="color:#ef4444;">*</span></label>
+                    <input type="password" name="new_password" id="password_new_password" class="form-input" required minlength="8">
+                    @error('new_password')
+                        @if(old('_form') === 'change_password')
+                            <span class="field-error">{{ $message }}</span>
+                        @endif
+                    @enderror
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password_new_password_confirmation">Confirm New Password <span style="color:#ef4444;">*</span></label>
+                    <input type="password" name="new_password_confirmation" id="password_new_password_confirmation" class="form-input" required>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeChangePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn-amber">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endauth
+
     <script>
         // Close user menu when clicking outside
         document.addEventListener('click', function(e) {
             const menu = document.getElementById('userMenu');
             if (menu && !menu.contains(e.target)) menu.classList.remove('open');
         });
+
+        @auth
+        function openEditProfileModal() {
+            document.getElementById('editProfileModal').classList.add('open');
+            const menu = document.getElementById('userMenu');
+            if (menu) menu.classList.remove('open');
+        }
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').classList.remove('open');
+        }
+
+        function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.add('open');
+            const menu = document.getElementById('userMenu');
+            if (menu) menu.classList.remove('open');
+        }
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('open');
+        }
+
+        @if(old('_form') === 'edit_profile')
+        document.addEventListener('DOMContentLoaded', () => {
+            openEditProfileModal();
+        });
+        @endif
+
+        @if(old('_form') === 'change_password')
+        document.addEventListener('DOMContentLoaded', () => {
+            openChangePasswordModal();
+        });
+        @endif
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeEditProfileModal();
+                closeChangePasswordModal();
+            }
+        });
+        @endauth
     </script>
     @stack('scripts')
 

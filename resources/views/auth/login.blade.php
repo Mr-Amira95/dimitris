@@ -34,12 +34,7 @@
 
         {{-- Password field --}}
         <div>
-            <div class="flex items-center justify-between mb-1.5">
-                <label for="password" class="block text-sm font-medium" style="color: #d1d5db;">Password</label>
-                <a href="{{ route('password.request') }}" class="text-xs transition-colors" style="color: #f59e0b;" onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='#f59e0b'">
-                    Forgot password?
-                </a>
-            </div>
+            <label for="password" class="block text-sm font-medium mb-1.5" style="color: #d1d5db;">Password</label>
             <div class="relative">
                 <input
                     id="password"
@@ -60,6 +55,11 @@
             @error('password')
                 <p class="mt-1.5 text-xs" style="color: #ef4444;">{{ $message }}</p>
             @enderror
+            <div class="mt-2 flex justify-end">
+                <a href="{{ route('password.request') }}" class="text-xs transition-colors font-medium" style="color: #f59e0b;" onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='#f59e0b'">
+                    Forgot password?
+                </a>
+            </div>
         </div>
 
         {{-- Remember me --}}

@@ -7,10 +7,10 @@
 /* ====== LAYOUT ====== */
 .kanban-wrap { display:flex; flex-direction:column; height:calc(100vh - 60px); overflow:hidden; }
 .kanban-toolbar { flex-shrink:0; display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #222; background:#141414; flex-wrap:wrap; }
-.kanban-board { flex:1; display:flex; gap:10px; padding:14px 16px; overflow-x:auto; align-items:flex-start; }
+.kanban-board { flex:1; display:flex; gap:10px; padding:14px 16px; overflow-x:auto; align-items:stretch; }
 
 /* ====== COLUMN ====== */
-.kanban-col { flex-shrink:0; width:272px; display:flex; flex-direction:column; border-radius:12px; background:#1a1a1a; border:1px solid #2a2a2a; max-height:100%; overflow:hidden; }
+.kanban-col { flex-shrink:0; width:272px; display:flex; flex-direction:column; border-radius:12px; background:#1a1a1a; border:1px solid #2a2a2a; overflow:hidden; }
 .kanban-col-header { display:flex; align-items:center; justify-content:space-between; padding:10px 13px; border-radius:11px 11px 0 0; border-bottom:1px solid #222; flex-shrink:0; }
 .kanban-col-title { font-size:12.5px; font-weight:600; letter-spacing:.01em; }
 .kanban-col-count { font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(255,255,255,.07); color:#9ca3af; }
@@ -134,6 +134,45 @@ textarea.form-input { resize:vertical; min-height:72px; }
 ::-webkit-scrollbar { width:5px; height:5px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:#2d2d2d; border-radius:3px; }
+
+/* ====== EMPTY STATE ====== */
+.col-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:28px 14px; flex:1; }
+.col-empty-label { font-size:12px; color:#3d3d3d; text-align:center; line-height:1.5; }
+.col-new-empty .col-empty-label { color:#4b5563; }
+
+/* ====== DATE/TIME INPUT WRAPPERS ====== */
+.dt-wrap { position:relative; }
+.dt-wrap .dt-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:#4b5563; pointer-events:none; z-index:1; }
+.dt-wrap input { padding-left:32px !important; }
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator { filter:invert(0.45); cursor:pointer; }
+
+/* ====== FORM SECTION BLOCKS ====== */
+.form-section { background:#141414; border:1px solid #222; border-radius:9px; padding:13px 14px 6px; margin-bottom:14px; }
+.form-section-title { font-size:10.5px; font-weight:600; color:#4b5563; text-transform:uppercase; letter-spacing:.07em; margin-bottom:10px; }
+.form-grid-3 { display:grid; grid-template-columns:1.2fr 1fr 1.3fr; gap:12px; }
+.form-grid-3e { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+/* ====== INLINE FIELD ERRORS ====== */
+.field-error { display:block; font-size:11.5px; color:#ef4444; margin-top:3px; min-height:0; }
+.field-error:empty { display:none; }
+.form-input.has-error,.form-select.has-error { border-color:#ef4444 !important; }
+
+/* ====== SEARCHABLE SELECT (items table) ====== */
+.ss-wrap { position:relative; }
+.ss-input-row { position:relative; }
+.ss-caret { position:absolute; right:7px; top:50%; transform:translateY(-50%); color:#4b5563; pointer-events:none; }
+.ss-drop { display:none; position:absolute; top:calc(100% + 2px); left:0; right:0; background:#1e1e1e; border:1px solid #2d2d2d; border-radius:8px; max-height:160px; overflow-y:auto; z-index:400; box-shadow:0 8px 24px rgba(0,0,0,.5); }
+.ss-drop.open { display:block; }
+.ss-option { padding:7px 10px; font-size:12.5px; color:#d1d5db; cursor:pointer; }
+.ss-option:hover,.ss-option.focused { background:#2a2a2a; color:#f5f5f5; }
+
+/* ====== DRAG CONFIRM MODAL ====== */
+.confirm-modal-box { background:#1a1a1a; border:1px solid #2d2d2d; border-radius:14px; width:100%; max-width:380px; padding:24px 22px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+.confirm-modal-icon { width:42px; height:42px; border-radius:50%; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.25); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+.confirm-modal-title { font-size:15px; font-weight:700; color:#f5f5f5; text-align:center; margin-bottom:6px; }
+.confirm-modal-msg { font-size:13px; color:#9ca3af; text-align:center; margin-bottom:20px; line-height:1.6; }
+.confirm-modal-actions { display:flex; gap:8px; justify-content:center; }
 </style>
 @endpush
 
@@ -170,15 +209,36 @@ textarea.form-input { resize:vertical; min-height:72px; }
     <div class="kanban-board">
         @php $cols = ['new'=>'New Order','packing'=>'Preparation & Packing','dispatch'=>'Dispatch','picked_up'=>'Picked Up','delivered'=>'Delivered','cancelled'=>'Cancelled']; @endphp
         @foreach($cols as $key => $label)
+        @php $colOrders = ($orders[$key] ?? collect()); @endphp
         <div class="kanban-col col-{{ $key }}">
             <div class="kanban-col-header">
                 <span class="kanban-col-title">{{ $label }}</span>
-                <span class="kanban-col-count" id="cnt-{{ $key }}">{{ ($orders[$key] ?? collect())->count() }}</span>
+                <span class="kanban-col-count" id="cnt-{{ $key }}">{{ $colOrders->count() }}</span>
             </div>
             <div class="kanban-cards" id="col-{{ $key }}" data-status="{{ $key }}">
-                @foreach(($orders[$key] ?? collect()) as $order)
+                @foreach($colOrders as $order)
                 @include('kanban._card', ['order' => $order])
                 @endforeach
+                {{-- Empty state --}}
+                <div class="col-empty{{ $key === 'new' ? ' col-new-empty' : '' }}" id="empty-{{ $key }}"
+                     style="{{ $colOrders->isNotEmpty() ? 'display:none;' : '' }}">
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="color:#2d2d2d;">
+                        @if($key === 'new')
+                            <path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        @else
+                            <path stroke-linecap="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                        @endif
+                    </svg>
+                    @if($key === 'new')
+                    <span class="col-empty-label">No new orders yet</span>
+                    <button class="btn-primary" style="font-size:12px;padding:6px 12px;" onclick="openOrderForm()">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+                        New Order
+                    </button>
+                    @else
+                    <span class="col-empty-label">No {{ strtolower($label) }} orders</span>
+                    @endif
+                </div>
             </div>
         </div>
         @endforeach
@@ -206,6 +266,8 @@ const STATUS_LABELS = {
 };
 
 // ── Drag-and-drop ─────────────────────────────────────────────────────────────
+let pendingDrag = null;
+
 ['new','packing','dispatch','picked_up','delivered','cancelled'].forEach(status => {
     const el = document.getElementById('col-' + status);
     if (!el) return;
@@ -215,7 +277,15 @@ const STATUS_LABELS = {
         onEnd(evt) {
             const id = evt.item.dataset.orderId;
             const ns = evt.to.dataset.status;
-            if (evt.from.dataset.status !== ns) apiUpdateStatus(id, ns);
+            const os = evt.from.dataset.status;
+            if (os !== ns) {
+                pendingDrag = { item: evt.item, from: evt.from, to: evt.to, oldIndex: evt.oldDraggableIndex, id, ns, os };
+                document.getElementById('dragConfirmFrom').textContent = STATUS_LABELS[os];
+                document.getElementById('dragConfirmTo').textContent   = STATUS_LABELS[ns];
+                document.getElementById('dragConfirmModal').classList.add('open');
+                updateEmptyState(os);
+                updateEmptyState(ns);
+            }
         }
     });
 });
@@ -232,10 +302,19 @@ document.getElementById('searchInput').addEventListener('input', function() {
 
 function recountCols() {
     ['new','packing','dispatch','picked_up','delivered','cancelled'].forEach(s => {
+        updateEmptyState(s);
         const col = document.getElementById('col-' + s);
         const el  = document.getElementById('cnt-' + s);
-        if (col && el) el.textContent = col.querySelectorAll('.order-card:not([style*="none"])').length;
+        if (col && el) el.textContent = col.querySelectorAll('.order-card:not([style*="display: none"]):not([style*="display:none"])').length;
     });
+}
+
+function updateEmptyState(status) {
+    const col   = document.getElementById('col-' + status);
+    const empty = document.getElementById('empty-' + status);
+    if (!col || !empty) return;
+    const hasCards = col.querySelectorAll('.order-card:not([style*="display: none"]):not([style*="display:none"])').length > 0;
+    empty.style.display = hasCards ? 'none' : '';
 }
 
 // ── Refresh ───────────────────────────────────────────────────────────────────
@@ -264,6 +343,24 @@ async function apiUpdateStatus(orderId, status) {
     recountCols();
 }
 
+function confirmDragMove() {
+    if (!pendingDrag) return;
+    const { id, ns } = pendingDrag;
+    pendingDrag = null;
+    document.getElementById('dragConfirmModal').classList.remove('open');
+    apiUpdateStatus(id, ns);
+}
+
+function cancelDragMove() {
+    if (!pendingDrag) return;
+    const { item, from, oldIndex } = pendingDrag;
+    const refNode = from.children[oldIndex] || null;
+    from.insertBefore(item, refNode);
+    recountCols();
+    pendingDrag = null;
+    document.getElementById('dragConfirmModal').classList.remove('open');
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORDER FORM MODAL (Create + Edit)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -280,6 +377,8 @@ function openOrderForm(order = null) {
     document.getElementById('formTitle').textContent = order ? `Edit ${order.order_number}` : 'New Order';
     document.getElementById('formSubmitBtn').textContent = order ? 'Save Changes' : 'Create Order';
     document.getElementById('formError').textContent = '';
+    document.getElementById('addItemError').textContent = '';
+    clearFErrors();
 
     // Determine edit scope
     if (order && !ME.isAdmin && ME.role === 'production' && order.status === 'packing') {
@@ -336,11 +435,11 @@ let custTimer = null;
 document.getElementById('custSearch').addEventListener('input', function() {
     clearTimeout(custTimer);
     const q = this.value.trim();
-    if (!q) { closeSDrop('custDrop'); selectedCustId = null; return; }
-    custTimer = setTimeout(() => loadCustomers(q), 220);
+    if (!q) { selectedCustId = null; }
+    custTimer = setTimeout(() => loadCustomers(q), 200);
 });
 document.getElementById('custSearch').addEventListener('focus', function() {
-    if (this.value.trim()) loadCustomers(this.value.trim());
+    loadCustomers(this.value.trim());
 });
 
 async function loadCustomers(q) {
@@ -381,31 +480,123 @@ document.addEventListener('click', e => {
     if (!e.target.closest('#custSearchWrap')) closeSDrop('custDrop');
 });
 
+// ── Searchable select helpers (item rows) ─────────────────────────────────────
+function makeSS(fieldName, type, opts, selectedId) {
+    const ph   = type === 'product' ? 'Product…' : type === 'filling' ? 'Filling…' : 'Grind…';
+    const sel  = opts.find(o => o.id == selectedId);
+    return `<div class="ss-wrap" data-type="${type}" style="position:relative;">
+        <div class="ss-input-row" style="position:relative;">
+            <input type="text" class="ss-input form-input" autocomplete="off" placeholder="${ph}"
+                   value="${sel ? escHtml(sel.name) : ''}" data-selname="${sel ? escHtml(sel.name) : ''}"
+                   style="padding:6px 26px 6px 7px;font-size:12.5px;">
+            <svg class="ss-caret" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <input type="hidden" name="${fieldName}" value="${selectedId || ''}">
+        <div class="ss-drop"></div>
+    </div>`;
+}
+
+function ssOpts(opts, filter) {
+    const f = filter.toLowerCase().trim();
+    const r = f ? opts.filter(o => o.name.toLowerCase().includes(f)) : opts;
+    if (!r.length) return '<div class="sdrop-empty">No results</div>';
+    return r.map(o => `<div class="ss-option" data-id="${o.id}" data-name="${escHtml(o.name)}">${escHtml(o.name)}</div>`).join('');
+}
+
+// Event delegation on itemsBody
+const _ib = document.getElementById('itemsBody');
+_ib.addEventListener('focusin', e => {
+    if (!e.target.classList.contains('ss-input')) return;
+    const wrap = e.target.closest('.ss-wrap');
+    const type = wrap.dataset.type;
+    const opts = type === 'product' ? PRODUCTS : type === 'filling' ? FILLINGS : GRINDS;
+    wrap.querySelector('.ss-drop').innerHTML = ssOpts(opts, e.target.value);
+    wrap.querySelector('.ss-drop').classList.add('open');
+});
+_ib.addEventListener('input', e => {
+    if (!e.target.classList.contains('ss-input')) return;
+    const wrap = e.target.closest('.ss-wrap');
+    const type = wrap.dataset.type;
+    const opts = type === 'product' ? PRODUCTS : type === 'filling' ? FILLINGS : GRINDS;
+    wrap.querySelector('input[type=hidden]').value = '';
+    e.target.dataset.selname = '';
+    wrap.querySelector('.ss-drop').innerHTML = ssOpts(opts, e.target.value);
+    wrap.querySelector('.ss-drop').classList.add('open');
+});
+_ib.addEventListener('click', e => {
+    const opt = e.target.closest('.ss-option');
+    if (!opt) return;
+    const wrap = opt.closest('.ss-wrap');
+    const inp  = wrap.querySelector('.ss-input');
+    inp.value  = opt.dataset.name;
+    inp.dataset.selname = opt.dataset.name;
+    wrap.querySelector('input[type=hidden]').value = opt.dataset.id;
+    wrap.querySelector('.ss-drop').classList.remove('open');
+    e.stopPropagation();
+});
+_ib.addEventListener('focusout', e => {
+    if (!e.target.classList.contains('ss-input')) return;
+    setTimeout(() => {
+        const wrap = e.target.closest('.ss-wrap');
+        if (wrap && !wrap.contains(document.activeElement)) {
+            wrap.querySelector('.ss-drop').classList.remove('open');
+            if (!wrap.querySelector('input[type=hidden]').value) {
+                e.target.value = e.target.dataset.selname || '';
+            }
+        }
+    }, 160);
+});
+document.addEventListener('click', e => {
+    if (!e.target.closest('.ss-wrap')) {
+        document.querySelectorAll('#itemsBody .ss-drop.open').forEach(d => d.classList.remove('open'));
+    }
+});
+
 // Item rows
 function addItemRow(item = null) {
     const body = document.getElementById('itemsBody');
     const idx  = body.children.length;
     const tr   = document.createElement('tr');
-    const pOpts = PRODUCTS.map(p => `<option value="${p.id}" ${item && item.product_id == p.id ? 'selected':''}>${escHtml(p.name)}</option>`).join('');
-    const fOpts = FILLINGS.map(f => `<option value="${f.id}" ${item && item.filling_id == f.id ? 'selected':''}>${escHtml(f.name)}</option>`).join('');
-    const gOpts = GRINDS.map(g => `<option value="${g.id}" ${item && item.grind_id == g.id ? 'selected':''}>${escHtml(g.name)}</option>`).join('');
     tr.innerHTML = `
-        <td><select name="items[${idx}][product_id]" class="form-select" style="padding:6px 7px;font-size:12.5px;" required>
-            <option value="">Product…</option>${pOpts}</select></td>
-        <td><select name="items[${idx}][filling_id]" class="form-select" style="padding:6px 7px;font-size:12.5px;" required>
-            <option value="">Filling…</option>${fOpts}</select></td>
-        <td><select name="items[${idx}][grind_id]" class="form-select" style="padding:6px 7px;font-size:12.5px;" required>
-            <option value="">Grind…</option>${gOpts}</select></td>
+        <td>${makeSS(`items[${idx}][product_id]`, 'product', PRODUCTS, item ? item.product_id : null)}</td>
+        <td>${makeSS(`items[${idx}][filling_id]`, 'filling', FILLINGS, item ? item.filling_id : null)}</td>
+        <td>${makeSS(`items[${idx}][grind_id]`,   'grind',   GRINDS,   item ? item.grind_id   : null)}</td>
         <td style="width:62px;"><input type="number" name="items[${idx}][qty]" value="${item ? item.qty : 1}" min="1" max="999" class="form-input" style="padding:6px 7px;font-size:13px;text-align:center;" required></td>
         <td><button type="button" class="rm-btn" onclick="removeItem(this)">
             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button></td>`;
     body.appendChild(tr);
 }
+
+function validateCurrentRow() {
+    const rows = document.querySelectorAll('#itemsBody tr');
+    if (!rows.length) return true;
+    const last = rows[rows.length - 1];
+    const p = last.querySelector('[name*="product_id"]').value;
+    const f = last.querySelector('[name*="filling_id"]').value;
+    const g = last.querySelector('[name*="grind_id"]').value;
+    const missing = [];
+    if (!p) missing.push('Product');
+    if (!f) missing.push('Filling');
+    if (!g) missing.push('Grind');
+    const errEl = document.getElementById('addItemError');
+    if (missing.length) {
+        errEl.textContent = `Fill the current item first — missing: ${missing.join(', ')}.`;
+        return false;
+    }
+    errEl.textContent = '';
+    return true;
+}
+
+function handleAddItem() {
+    if (validateCurrentRow()) addItemRow();
+}
+
 function removeItem(btn) {
     if (document.getElementById('itemsBody').children.length <= 1) return;
     btn.closest('tr').remove();
     reindex();
+    document.getElementById('addItemError').textContent = '';
 }
 function reindex() {
     document.querySelectorAll('#itemsBody tr').forEach((tr, i) => {
@@ -415,31 +606,50 @@ function reindex() {
     });
 }
 
+// Inline field error helpers
+function setFErr(id, msg) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; }
+    const inp = document.getElementById(id.replace('err-',''));
+    if (inp) inp.classList.toggle('has-error', !!msg);
+}
+function clearFErrors() {
+    document.querySelectorAll('.field-error').forEach(e => e.textContent = '');
+    document.querySelectorAll('.has-error').forEach(e => e.classList.remove('has-error'));
+}
+
 // Submit
 document.getElementById('orderForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const errEl = document.getElementById('formError');
     errEl.textContent = '';
+    clearFErrors();
 
-    if (!selectedCustId && !editItemsOnly) { errEl.textContent = 'Please select a customer.'; return; }
+    let hasErr = false;
 
-    const phoneVal = document.getElementById('phoneSelect').value;
-    const addrVal  = document.getElementById('addrSelect').value;
-    if (!editItemsOnly && (!phoneVal || !addrVal)) {
-        errEl.textContent = 'Phone and address are required.'; return;
+    if (!editItemsOnly) {
+        if (!selectedCustId) { setFErr('err-custSearch','Please select a customer.'); hasErr = true; }
+        const phoneVal = document.getElementById('phoneSelect').value;
+        const addrVal  = document.getElementById('addrSelect').value;
+        if (!phoneVal) { setFErr('err-phoneSelect','Phone number is required.'); hasErr = true; }
+        if (!addrVal)  { setFErr('err-addrSelect','Delivery address is required.'); hasErr = true; }
+        if (!document.getElementById('orderDate').value) { setFErr('err-orderDate','Order date is required.'); hasErr = true; }
     }
 
     const items = [];
-    let valid = true;
+    let itemsValid = true;
     document.querySelectorAll('#itemsBody tr').forEach(tr => {
         const p = tr.querySelector('[name*="product_id"]').value;
         const f = tr.querySelector('[name*="filling_id"]').value;
         const g = tr.querySelector('[name*="grind_id"]').value;
         const q = tr.querySelector('[name*="qty"]').value;
-        if (!p || !f || !g) valid = false;
-        items.push({ product_id: parseInt(p), filling_id: parseInt(f), grind_id: parseInt(g), qty: parseInt(q) });
+        if (!p || !f || !g) itemsValid = false;
+        if (p || f || g || q) items.push({ product_id: parseInt(p)||0, filling_id: parseInt(f)||0, grind_id: parseInt(g)||0, qty: parseInt(q)||1 });
     });
-    if (!valid) { errEl.textContent = 'Please fill in all product, filling, and grind fields.'; return; }
+    if (!items.length) { errEl.textContent = 'Add at least one item.'; hasErr = true; }
+    else if (!itemsValid) { document.getElementById('addItemError').textContent = 'Some items are incomplete — fill all Product, Filling, and Grind fields.'; hasErr = true; }
+
+    if (hasErr) return;
 
     let payload;
     if (editItemsOnly) {
@@ -491,6 +701,7 @@ function prependCardToBoard(order) {
     if (!col) return;
     const el = buildCardElement(order);
     col.prepend(el);
+    updateEmptyState('new');
     const cnt = document.getElementById('cnt-new');
     if (cnt) cnt.textContent = parseInt(cnt.textContent||0) + 1;
     const ac = document.getElementById('activeCount');
@@ -609,9 +820,6 @@ function renderDetail(order) {
         footer.appendChild(b);
     };
 
-    // Close (always first)
-    add('Close', 'btn-secondary', closeDetail);
-
     if (isArchived) {
         // Archived state: Restore only (admin)
         if (ME.isAdmin) {
@@ -711,6 +919,8 @@ function moveCardOnBoard(orderId, newStatus) {
     const oldStatus = card.closest('.kanban-cards')?.dataset?.status;
     newCol.prepend(card);
     recountCols();
+    if (oldStatus) updateEmptyState(oldStatus);
+    updateEmptyState(newStatus);
     // active count
     const active = ['new','packing','dispatch','picked_up'];
     const wasActive = active.includes(oldStatus);
@@ -736,14 +946,20 @@ async function openDispatchModal(orderId) {
     document.getElementById('outsourcedCost').value = '';
     setDriverType('our');
 
-    // Load drivers
-    const drivers = await fetch('/api/drivers').then(r => r.json());
-    const sel = document.getElementById('driverSelect');
-    sel.innerHTML = drivers.length
-        ? drivers.map(d => `<option value="${d.id}">${escHtml(d.full_name)}</option>`).join('')
-        : '<option value="">No drivers available</option>';
-
+    // Open immediately — load drivers async
     document.getElementById('dispatchModal').classList.add('open');
+
+    const sel = document.getElementById('driverSelect');
+    sel.innerHTML = '<option value="">Loading drivers…</option>';
+    try {
+        const drivers = await fetch('/api/drivers').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+        sel.innerHTML = drivers.length
+            ? drivers.map(d => `<option value="${d.id}">${escHtml(d.full_name)}</option>`).join('')
+            : '<option value="">No drivers available</option>';
+    } catch {
+        sel.innerHTML = '<option value="">Failed to load drivers</option>';
+        document.getElementById('dispatchError').textContent = 'Could not load driver list. Please refresh and try again.';
+    }
 }
 function closeDispatch() { document.getElementById('dispatchModal').classList.remove('open'); }
 
@@ -820,39 +1036,68 @@ function escJs(s)   { return (s||'').replace(/'/g,"\\'"); }
         </div>
         <div class="modal-body">
             <form id="orderForm" onsubmit="return false;">
-                <div class="form-grid">
-                    <div class="form-group full">
-                        <label class="form-label">Customer <span class="req">*</span></label>
-                        <div class="search-dropdown" id="custSearchWrap">
-                            <input type="text" id="custSearch" class="form-input" placeholder="Search customer name…" autocomplete="off">
-                            <div class="sdrop-list" id="custDrop"></div>
+
+                {{-- Customer Details Section --}}
+                <div class="form-section">
+                    <div class="form-section-title">Customer Details</div>
+                    <div class="form-grid-3">
+                        <div class="form-group" style="margin-bottom:6px;">
+                            <label class="form-label">Customer <span class="req">*</span></label>
+                            <div class="search-dropdown" id="custSearchWrap">
+                                <input type="text" id="custSearch" class="form-input" placeholder="Click to select customer…" autocomplete="off">
+                                <div class="sdrop-list" id="custDrop"></div>
+                            </div>
+                            <span class="field-error" id="err-custSearch"></span>
+                        </div>
+                        <div class="form-group" style="margin-bottom:6px;">
+                            <label class="form-label">Phone Number <span class="req">*</span></label>
+                            <select id="phoneSelect" name="phone" class="form-select"><option value="">Select customer first</option></select>
+                            <span class="field-error" id="err-phoneSelect"></span>
+                        </div>
+                        <div class="form-group" style="margin-bottom:6px;">
+                            <label class="form-label">Delivery Address <span class="req">*</span></label>
+                            <select id="addrSelect" name="delivery_address" class="form-select"><option value="">Select customer first</option></select>
+                            <span class="field-error" id="err-addrSelect"></span>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Phone Number <span class="req">*</span></label>
-                        <select id="phoneSelect" name="phone" class="form-select"><option value="">Select customer first</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Delivery Address <span class="req">*</span></label>
-                        <select id="addrSelect" name="delivery_address" class="form-select"><option value="">Select customer first</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Order Date <span class="req">*</span></label>
-                        <input type="date" id="orderDate" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Preferred Delivery Date</label>
-                        <input type="date" id="prefDate" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Preferred Time</label>
-                        <input type="time" id="prefTime" class="form-input">
-                    </div>
-                    <div class="form-group full">
-                        <label class="form-label">Internal Notes</label>
-                        <textarea id="internalNotes" class="form-input" placeholder="Optional internal notes…"></textarea>
+                </div>
+
+                {{-- Preferred Delivery Section --}}
+                <div class="form-section">
+                    <div class="form-section-title">Delivery Schedule</div>
+                    <div class="form-grid-3e">
+                        <div class="form-group" style="margin-bottom:6px;">
+                            <label class="form-label">Order Date <span class="req">*</span></label>
+                            <div class="dt-wrap">
+                                <svg class="dt-icon" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                <input type="date" id="orderDate" class="form-input" required>
+                            </div>
+                            <span class="field-error" id="err-orderDate"></span>
+                        </div>
+                        <div class="form-group" style="margin-bottom:6px;">
+                            <label class="form-label">Preferred Delivery Date</label>
+                            <div class="dt-wrap">
+                                <svg class="dt-icon" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                <input type="date" id="prefDate" class="form-input">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:6px;">
+                            <label class="form-label">Preferred Time</label>
+                            <div class="dt-wrap">
+                                <svg class="dt-icon" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 12"/></svg>
+                                <input type="time" id="prefTime" class="form-input">
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                {{-- Notes --}}
+                <div class="form-group">
+                    <label class="form-label">Internal Notes <span style="font-size:11px;color:#4b5563;">(optional)</span></label>
+                    <textarea id="internalNotes" class="form-input" placeholder="Optional internal notes…" style="min-height:60px;"></textarea>
+                </div>
+
+                {{-- Items --}}
                 <div style="border-top:1px solid #222;padding-top:12px;margin-top:2px;">
                     <p class="form-label" style="margin-bottom:8px;">Order Items <span class="req">*</span></p>
                     <table class="items-table">
@@ -861,11 +1106,15 @@ function escJs(s)   { return (s||'').replace(/'/g,"\\'"); }
                         </tr></thead>
                         <tbody id="itemsBody"></tbody>
                     </table>
-                    <button type="button" class="btn-add-item" onclick="addItemRow()">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-                        Add Item
-                    </button>
+                    <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+                        <button type="button" class="btn-add-item" onclick="handleAddItem()">
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+                            Add Item
+                        </button>
+                        <span id="addItemError" style="font-size:12px;color:#ef4444;"></span>
+                    </div>
                 </div>
+
                 <p id="formError" style="color:#ef4444;font-size:12.5px;margin-top:10px;min-height:16px;"></p>
             </form>
         </div>
@@ -933,6 +1182,29 @@ function escJs(s)   { return (s||'').replace(/'/g,"\\'"); }
             <button class="btn-primary" id="dispatchConfirmBtn" onclick="confirmDispatch()">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
                 Confirm & Dispatch
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- ── Drag-and-Drop Confirmation Modal ── --}}
+<div class="modal-overlay" id="dragConfirmModal" style="z-index:300;">
+    <div class="confirm-modal-box">
+        <div class="confirm-modal-icon">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#f59e0b" stroke-width="2"><path stroke-linecap="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+        </div>
+        <div class="confirm-modal-title">Move Order?</div>
+        <div class="confirm-modal-msg">
+            Move this order from<br>
+            <strong style="color:#f5f5f5;" id="dragConfirmFrom"></strong>
+            &nbsp;→&nbsp;
+            <strong style="color:#f59e0b;" id="dragConfirmTo"></strong>
+        </div>
+        <div class="confirm-modal-actions">
+            <button class="btn-secondary" onclick="cancelDragMove()">Cancel</button>
+            <button class="btn-primary" onclick="confirmDragMove()">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+                Confirm Move
             </button>
         </div>
     </div>

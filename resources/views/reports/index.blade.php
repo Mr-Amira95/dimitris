@@ -8,10 +8,53 @@
 /* ── Date filter ── */
 .reports-filter { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:22px; padding:14px 16px; background:#1a1a1a; border:1px solid #2d2d2d; border-radius:12px; }
 .filter-label { font-size:12px; font-weight:500; color:#6b7280; white-space:nowrap; }
-.filter-date { padding:7px 10px; background:#141414; border:1px solid #2d2d2d; border-radius:8px; font-size:13px; color:#f5f5f5; outline:none; }
-.filter-date:focus { border-color:#f59e0b; }
 .btn-filter { padding:7px 14px; background:#f59e0b; color:#111; border-radius:8px; font-size:13px; font-weight:600; border:none; cursor:pointer; }
 .btn-filter:hover { background:#d97706; }
+
+/* Custom Date Range Picker */
+.custom-date-range {
+    display: inline-flex;
+    align-items: center;
+    background: #141414;
+    border: 1px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 34px;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+.custom-date-range:focus-within {
+    border-color: #f59e0b;
+}
+.custom-date-range .calendar-icon {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+.custom-date-range .date-input {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    color: #f5f5f5;
+    outline: none;
+    padding: 0;
+    width: 125px;
+    cursor: pointer;
+}
+.custom-date-range .date-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.5;
+    margin-left: 4px;
+    cursor: pointer;
+}
+.custom-date-range .date-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 0.8;
+}
+.custom-date-range .range-separator {
+    color: #4b5563;
+    font-size: 12px;
+    margin: 0 8px;
+    user-select: none;
+}
 
 /* ── Stat cards ── */
 .stats-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:12px; margin-bottom:22px; }
@@ -46,12 +89,22 @@
 <form method="GET" action="{{ route('reports.index') }}">
     <div class="reports-filter">
         <span class="filter-label">Date range:</span>
-        <input type="date" name="date_from" value="{{ request('date_from', now()->startOfMonth()->format('Y-m-d')) }}" class="filter-date">
-        <span style="color:#4b5563;font-size:13px;">to</span>
-        <input type="date" name="date_to"   value="{{ request('date_to',   now()->format('Y-m-d')) }}" class="filter-date">
-        <button type="submit" class="btn-filter">Apply</button>
-        <a href="{{ route('reports.index') }}" style="font-size:12.5px;color:#6b7280;text-decoration:none;margin-left:4px;">Reset</a>
-        <span style="margin-left:auto;font-size:12px;color:#4b5563;">
+        
+        <div class="custom-date-range">
+            <svg class="calendar-icon" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#6b7280" stroke-width="2.5">
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            <input type="date" name="date_from" value="{{ request('date_from', now()->startOfMonth()->format('Y-m-d')) }}" class="date-input" title="Archived from">
+            <span class="range-separator">to</span>
+            <input type="date" name="date_to"   value="{{ request('date_to',   now()->format('Y-m-d')) }}"   class="date-input" title="Archived to">
+        </div>
+
+        <button type="submit" class="btn-filter" style="height:34px; box-sizing:border-box;">Apply</button>
+        <a href="{{ route('reports.index') }}" style="font-size:12.5px;color:#6b7280;text-decoration:none;margin-left:4px; display:inline-flex; align-items:center; justify-content:center; padding:7px 12px; background:#141414; border:1px solid #2d2d2d; border-radius:8px; height:34px; box-sizing:border-box;"
+           onmouseover="this.style.background='#222'; this.style.color='#9ca3af'"
+           onmouseout="this.style.background='#141414'; this.style.color='#6b7280'">Reset</a>
+        <span style="margin-left:auto;font-size:12px;color:#6b7280;font-weight:500;">
             {{ $dateFrom->format('M d') }} – {{ $dateTo->format('M d, Y') }}
         </span>
     </div>
@@ -95,11 +148,15 @@
 <div class="charts-row">
     <div class="chart-card">
         <div class="chart-title">Orders by Status</div>
-        <canvas id="barChart" height="220"></canvas>
+        <div style="position: relative; height: 220px;">
+            <canvas id="barChart"></canvas>
+        </div>
     </div>
     <div class="chart-card">
         <div class="chart-title">Orders per Day</div>
-        <canvas id="lineChart" height="220"></canvas>
+        <div style="position: relative; height: 220px;">
+            <canvas id="lineChart"></canvas>
+        </div>
     </div>
 </div>
 

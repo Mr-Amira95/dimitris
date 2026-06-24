@@ -24,10 +24,6 @@ class ArchivedController extends Controller
             });
         }
 
-        if ($status = $request->get('status')) {
-            $query->where('status', $status);
-        }
-
         if ($dateFrom = $request->get('date_from')) {
             $query->whereDate('archived_at', '>=', $dateFrom);
         }

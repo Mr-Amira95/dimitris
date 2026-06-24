@@ -6,19 +6,60 @@
 @push('styles')
 <style>
 /* ── Filters ── */
-.filter-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
-.filter-bar .search-box { flex:1; min-width:220px; max-width:340px; position:relative; }
-.filter-bar .search-box input { width:100%; padding:7px 10px 7px 32px; background:#1e1e1e; border:1px solid #2d2d2d; border-radius:8px; font-size:13px; color:#f5f5f5; outline:none; transition:border-color .15s; }
+.filter-bar { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+.filter-bar .search-box { width: 360px; position:relative; }
+.filter-bar .search-box input { width:100%; padding:7px 10px 7px 32px; background:#1e1e1e; border:1px solid #2d2d2d; border-radius:8px; font-size:13px; color:#f5f5f5; outline:none; transition:border-color .15s; height:34px; box-sizing:border-box; }
 .filter-bar .search-box input:focus { border-color:#f59e0b; }
 .filter-bar .search-box svg { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:#4b5563; pointer-events:none; }
-.filter-select { padding:7px 10px; background:#1e1e1e; border:1px solid #2d2d2d; border-radius:8px; font-size:13px; color:#f5f5f5; outline:none; cursor:pointer; }
-.filter-select:focus { border-color:#f59e0b; }
-.filter-date { padding:7px 10px; background:#1e1e1e; border:1px solid #2d2d2d; border-radius:8px; font-size:13px; color:#f5f5f5; outline:none; }
-.filter-date:focus { border-color:#f59e0b; }
-.btn-filter { padding:7px 14px; background:#f59e0b; color:#111; border-radius:8px; font-size:13px; font-weight:600; border:none; cursor:pointer; }
+.btn-filter { padding:7px 14px; background:#f59e0b; color:#111; border-radius:8px; font-size:13px; font-weight:600; border:none; cursor:pointer; height:34px; box-sizing:border-box; }
 .btn-filter:hover { background:#d97706; }
-.btn-reset { padding:7px 12px; background:#1e1e1e; border:1px solid #2d2d2d; border-radius:8px; font-size:13px; color:#6b7280; cursor:pointer; }
+.btn-reset { padding:7px 12px; background:#1e1e1e; border:1px solid #2d2d2d; border-radius:8px; font-size:13px; color:#6b7280; cursor:pointer; height:34px; box-sizing:border-box; }
 .btn-reset:hover { background:#2a2a2a; color:#9ca3af; }
+
+/* Custom Date Range Picker */
+.custom-date-range {
+    display: inline-flex;
+    align-items: center;
+    background: #1e1e1e;
+    border: 1px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 34px;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+.custom-date-range:focus-within {
+    border-color: #f59e0b;
+}
+.custom-date-range .calendar-icon {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+.custom-date-range .date-input {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    color: #f5f5f5;
+    outline: none;
+    padding: 0;
+    width: 125px;
+    cursor: pointer;
+}
+.custom-date-range .date-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.5;
+    margin-left: 4px;
+    cursor: pointer;
+}
+.custom-date-range .date-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 0.8;
+}
+.custom-date-range .range-separator {
+    color: #4b5563;
+    font-size: 12px;
+    margin: 0 8px;
+    user-select: none;
+}
 
 /* ── Table ── */
 .data-table { width:100%; border-collapse:collapse; }
@@ -90,25 +131,38 @@ textarea.form-input { resize:vertical; }
 @section('content')
 <div>
     {{-- ── Filter Bar ── --}}
-    <form method="GET" action="{{ route('archived.index') }}">
+    <form method="GET" action="{{ route('archived.index') }}" id="searchForm">
         <div class="filter-bar">
-            <div class="search-box">
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Customer name or order #…" autocomplete="off">
+            {{-- LEFT: Orders Count --}}
+            <span style="font-size: 13.5px; color: #9ca3af; font-weight: 500; white-space: nowrap;">
+                {{ $orders->count() }} {{ Str::plural('order', $orders->count()) }} found
+            </span>
+
+            {{-- RIGHT: Filters Group --}}
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-left: auto;">
+                <div class="search-box">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" name="search" value="{{ request('search') }}" 
+                           placeholder="Search name or order #…" autocomplete="off"
+                           oninput="debouncedSearch()">
+                </div>
+                
+                <div class="custom-date-range">
+                    <svg class="calendar-icon" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#6b7280" stroke-width="2.5">
+                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                        <path d="M16 2v4M8 2v4M3 10h18"/>
+                    </svg>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="date-input" title="Archived from">
+                    <span class="range-separator">to</span>
+                    <input type="date" name="date_to"   value="{{ request('date_to') }}"   class="date-input" title="Archived to">
+                </div>
+                
+                <button type="submit" class="btn-filter">Filter</button>
+                
+                @if(request()->hasAny(['search','date_from','date_to']))
+                    <a href="{{ route('archived.index') }}" class="btn-reset" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 34px; box-sizing: border-box;">Clear</a>
+                @endif
             </div>
-            <select name="status" class="filter-select">
-                <option value="">All statuses</option>
-                @foreach(['new'=>'New Order','packing'=>'Preparation & Packing','dispatch'=>'Dispatch','picked_up'=>'Picked Up','delivered'=>'Delivered','cancelled'=>'Cancelled'] as $val => $lbl)
-                    <option value="{{ $val }}" {{ request('status') === $val ? 'selected' : '' }}>{{ $lbl }}</option>
-                @endforeach
-            </select>
-            <input type="date" name="date_from" value="{{ request('date_from') }}" class="filter-date" title="Archived from">
-            <input type="date" name="date_to"   value="{{ request('date_to') }}"   class="filter-date" title="Archived to">
-            <button type="submit" class="btn-filter">Filter</button>
-            @if(request()->hasAny(['search','status','date_from','date_to']))
-                <a href="{{ route('archived.index') }}" class="btn-reset">Clear</a>
-            @endif
-            <span style="margin-left:auto;font-size:12px;color:#4b5563;">{{ $orders->count() }} {{ Str::plural('order', $orders->count()) }}</span>
         </div>
     </form>
 
@@ -174,6 +228,14 @@ textarea.form-input { resize:vertical; }
 
 @push('scripts')
 <script>
+let searchTimer;
+function debouncedSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        document.getElementById('searchForm').submit();
+    }, 400);
+}
+
 const CSRF   = document.querySelector('meta[name="csrf-token"]').content;
 const IS_ADMIN = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
 const CAN_VIEW_COST = {{ (auth()->user()->isAdmin() || auth()->user()->hasPermission('view_delivery_cost')) ? 'true' : 'false' }};

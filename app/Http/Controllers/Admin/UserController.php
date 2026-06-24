@@ -12,18 +12,30 @@ use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('role')->latest()->paginate(20);
+        $search = $request->query('search', '');
 
-        return view('admin.users.index', compact('users'));
+        $users = User::with('role')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('full_name', 'like', "%{$search}%")
+                        ->orWhere('username', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $roles = Role::orderBy('name')->get();
+
+        return view('admin.users.index', compact('users', 'roles', 'search'));
     }
 
     public function create()
     {
-        $roles = Role::orderBy('name')->get();
-
-        return view('admin.users.create', compact('roles'));
+        return redirect()->route('admin.users.index');
     }
 
     public function store(Request $request)
@@ -52,24 +64,42 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $roles = Role::orderBy('name')->get();
-
-        return view('admin.users.edit', compact('user', 'roles'));
+        return redirect()->route('admin.users.index');
     }
 
     public function update(Request $request, User $user)
     {
-        $validated = $request->validate([
+        $rules = [
             'username'  => "required|string|max:50|unique:users,username,{$user->id}|alpha_dash",
             'full_name' => 'required|string|max:100',
             'email'     => "required|email|max:150|unique:users,email,{$user->id}",
             'role_id'   => 'required|exists:roles,id',
-        ]);
+        ];
+
+        if ($user->id !== auth()->id()) {
+            $rules['is_active'] = 'nullable|boolean';
+        }
+
+        $validated = $request->validate($rules);
 
         $user->update($validated);
 
         return redirect()->route('admin.users.index')
             ->with('success', "User {$user->full_name} updated successfully.");
+    }
+
+    public function resendInvitation(User $user)
+    {
+        $token = Str::random(64);
+
+        $user->update([
+            'password_setup_token'      => $token,
+            'password_setup_expires_at' => now()->addHours(48),
+        ]);
+
+        Mail::to($user->email)->send(new SetPasswordInvitation($user, $token));
+
+        return back()->with('success', "Invitation email resent to {$user->email}.");
     }
 
     public function toggleActive(User $user)
